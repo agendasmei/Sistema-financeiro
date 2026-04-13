@@ -9,7 +9,15 @@
 <body>
 
   <header>
-    <span id="breadcrumb">🏠 Início</span>
+    <div class="header-inner">
+      <div class="header-logo">
+        <div class="logo-mark">
+          <span class="logo-m">m</span><span class="logo-e">e</span><span class="logo-i">i</span>
+        </div>
+        <span class="header-title">Sistema Financeiro</span>
+      </div>
+      <span id="breadcrumb">🏠 Início</span>
+    </div>
   </header>
 
   <main>
@@ -17,7 +25,7 @@
     <!-- TELA CRs -->
     <div id="tela-crs" class="tela active">
       <div class="tela-header">
-        <h2>📁 Meus CRs</h2>
+        <h2>Meus CRs</h2>
         <button onclick="abrirModal('modal-cr')">+ Novo CR</button>
       </div>
       <div id="lista-crs" class="grid-cards"></div>
@@ -26,8 +34,11 @@
     <!-- TELA GRUPOS -->
     <div id="tela-grupos" class="tela">
       <div class="tela-header">
-        <h2>👥 Grupos</h2>
-        <button onclick="abrirModal('modal-grupo')">+ Novo Grupo</button>
+        <h2 id="titulo-grupos">Grupos</h2>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-secondary" onclick="verBalancete()">📊 Balancete</button>
+          <button onclick="abrirModal('modal-grupo')">+ Novo Grupo</button>
+        </div>
       </div>
       <div id="lista-grupos" class="grid-cards"></div>
     </div>
@@ -35,7 +46,7 @@
     <!-- TELA REUNIÕES -->
     <div id="tela-reunioes" class="tela">
       <div class="tela-header">
-        <h2>📅 Reuniões</h2>
+        <h2 id="titulo-reunioes">Reuniões</h2>
         <button onclick="abrirModal('modal-reuniao')">+ Nova Reunião</button>
       </div>
       <div id="lista-reunioes" class="grid-cards"></div>
@@ -44,7 +55,7 @@
     <!-- TELA ITENS -->
     <div id="tela-itens" class="tela">
       <div class="tela-header">
-        <h2>📋 Itens</h2>
+        <h2 id="titulo-itens">Itens</h2>
         <button onclick="addItem()">+ Adicionar Item</button>
       </div>
       <div class="table-wrapper">
@@ -78,6 +89,15 @@
       <button class="btn-salvar" onclick="salvarItens()">💾 Salvar</button>
     </div>
 
+    <!-- TELA BALANCETE -->
+    <div id="tela-balancete" class="tela">
+      <div class="tela-header">
+        <h2 id="titulo-balancete">Balancete</h2>
+        <button class="btn-secondary" onclick="irParaGrupos()">← Voltar</button>
+      </div>
+      <div id="conteudo-balancete"></div>
+    </div>
+
   </main>
 
   <!-- MODAL CR -->
@@ -85,9 +105,24 @@
     <div class="modal-box">
       <h3>Novo CR</h3>
       <input id="input-cr" type="text" placeholder="Nome do CR (ex: CR São Paulo 2026)">
+      <label class="input-label">Orçamento inicial (R$)</label>
+      <input id="input-cr-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
       <div class="modal-actions">
         <button onclick="salvarCR()">Salvar</button>
         <button class="btn-cancel" onclick="fecharModal('modal-cr')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR ORÇAMENTO -->
+  <div id="modal-orcamento" class="modal">
+    <div class="modal-box">
+      <h3>Editar Orçamento</h3>
+      <label class="input-label">Valor do orçamento (R$)</label>
+      <input id="input-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
+      <div class="modal-actions">
+        <button onclick="salvarOrcamento()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-orcamento')">Cancelar</button>
       </div>
     </div>
   </div>
@@ -120,5 +155,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
-
