@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Financeiro MEI</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <span id="breadcrumb">🏠 Início</span>
+  </header>
+
+  <main>
+
+    <!-- TELA CRs -->
+    <div id="tela-crs" class="tela active">
+      <div class="tela-header">
+        <h2>📁 Meus CRs</h2>
+        <button onclick="abrirModal('modal-cr')">+ Novo CR</button>
+      </div>
+      <div id="lista-crs" class="grid-cards"></div>
+    </div>
+
+    <!-- TELA GRUPOS -->
+    <div id="tela-grupos" class="tela">
+      <div class="tela-header">
+        <h2>👥 Grupos</h2>
+        <button onclick="abrirModal('modal-grupo')">+ Novo Grupo</button>
+      </div>
+      <div id="lista-grupos" class="grid-cards"></div>
+    </div>
+
+    <!-- TELA REUNIÕES -->
+    <div id="tela-reunioes" class="tela">
+      <div class="tela-header">
+        <h2>📅 Reuniões</h2>
+        <button onclick="abrirModal('modal-reuniao')">+ Nova Reunião</button>
+      </div>
+      <div id="lista-reunioes" class="grid-cards"></div>
+    </div>
+
+    <!-- TELA ITENS -->
+    <div id="tela-itens" class="tela">
+      <div class="tela-header">
+        <h2>📋 Itens</h2>
+        <button onclick="addItem()">+ Adicionar Item</button>
+      </div>
+      <div class="table-wrapper">
+        <table id="tbl-itens">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Fornecedor Cotado</th>
+              <th>Vlr Unitário</th>
+              <th>Qtd</th>
+              <th>Vlr Total</th>
+              <th>Aprovado?</th>
+              <th>Nº Pedido</th>
+              <th>Fornecedor Contratado</th>
+              <th>Nº NF</th>
+              <th>AS?</th>
+              <th>Pago?</th>
+              <th>🗑️</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-itens"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4"><strong>Total</strong></td>
+              <td id="total-itens">R$ 0,00</td>
+              <td colspan="7"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <button class="btn-salvar" onclick="salvarItens()">💾 Salvar</button>
+    </div>
+
+  </main>
+
+  <!-- MODAL CR -->
+  <div id="modal-cr" class="modal">
+    <div class="modal-box">
+      <h3>Novo CR</h3>
+      <input id="input-cr" type="text" placeholder="Nome do CR (ex: CR São Paulo 2026)">
+      <div class="modal-actions">
+        <button onclick="salvarCR()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-cr')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL GRUPO -->
+  <div id="modal-grupo" class="modal">
+    <div class="modal-box">
+      <h3>Novo Grupo</h3>
+      <input id="input-grupo" type="text" placeholder="Nome do grupo (ex: Comitê de Líderes)">
+      <div class="modal-actions">
+        <button onclick="salvarGrupo()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-grupo')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REUNIÃO -->
+  <div id="modal-reuniao" class="modal">
+    <div class="modal-box">
+      <h3>Nova Reunião</h3>
+      <input id="input-reuniao" type="text" placeholder="Nome (ex: Reunião 06/02)">
+      <div class="modal-actions">
+        <button onclick="salvarReuniao()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-reuniao')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
+
