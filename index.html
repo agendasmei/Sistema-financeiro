@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Financeiro MEI</title>
+  <title>Sistema Financeiro</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,12 +11,12 @@
   <header>
     <div class="header-inner">
       <div class="header-logo">
-        <div class="logo-mark">
-          <span class="logo-m">m</span><span class="logo-e">e</span><span class="logo-i">i</span>
-        </div>
         <span class="header-title">Sistema Financeiro</span>
       </div>
-      <span id="breadcrumb">🏠 Início</span>
+      <nav class="header-nav">
+        <span id="breadcrumb">Inicio</span>
+        <button class="btn-config" onclick="abrirConfiguracoes()">Configuracoes</button>
+      </nav>
     </div>
   </header>
 
@@ -36,7 +36,7 @@
       <div class="tela-header">
         <h2 id="titulo-grupos">Grupos</h2>
         <div style="display:flex;gap:10px;">
-          <button class="btn-secondary" onclick="verBalancete()">📊 Balancete</button>
+          <button class="btn-secondary" onclick="verBalancete()">Balancete</button>
           <button onclick="abrirModal('modal-grupo')">+ Novo Grupo</button>
         </div>
       </div>
@@ -46,8 +46,8 @@
     <!-- TELA REUNIÕES -->
     <div id="tela-reunioes" class="tela">
       <div class="tela-header">
-        <h2 id="titulo-reunioes">Reuniões</h2>
-        <button onclick="abrirModal('modal-reuniao')">+ Nova Reunião</button>
+        <h2 id="titulo-reunioes">Reunioes</h2>
+        <button onclick="abrirModal('modal-reuniao')">+ Nova Reuniao</button>
       </div>
       <div id="lista-reunioes" class="grid-cards"></div>
     </div>
@@ -62,40 +62,66 @@
         <table id="tbl-itens">
           <thead>
             <tr>
-              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Descricao</th>
               <th>Fornecedor Cotado</th>
-              <th>Vlr Unitário</th>
+              <th>Vlr Unitario</th>
               <th>Qtd</th>
               <th>Vlr Total</th>
-              <th>Aprovado?</th>
-              <th>Nº Pedido</th>
+              <th>Aprovado</th>
+              <th>Nr Pedido</th>
               <th>Fornecedor Contratado</th>
-              <th>Nº NF</th>
-              <th>AS?</th>
-              <th>Pago?</th>
-              <th>🗑️</th>
+              <th>Nr NF</th>
+              <th>AS</th>
+              <th>Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="tbody-itens"></tbody>
           <tfoot>
             <tr>
-              <td colspan="4"><strong>Total</strong></td>
+              <td colspan="5"><strong>Total</strong></td>
               <td id="total-itens">R$ 0,00</td>
               <td colspan="7"></td>
             </tr>
           </tfoot>
         </table>
       </div>
-      <button class="btn-salvar" onclick="salvarItens()">💾 Salvar</button>
+      <button class="btn-salvar" onclick="salvarItens()">Salvar</button>
     </div>
 
     <!-- TELA BALANCETE -->
     <div id="tela-balancete" class="tela">
       <div class="tela-header">
         <h2 id="titulo-balancete">Balancete</h2>
-        <button class="btn-secondary" onclick="irParaGrupos()">← Voltar</button>
+        <button class="btn-secondary" onclick="irParaGrupos()">Voltar</button>
       </div>
       <div id="conteudo-balancete"></div>
+    </div>
+
+    <!-- TELA CONFIGURAÇÕES -->
+    <div id="tela-config" class="tela">
+      <div class="tela-header">
+        <h2>Configuracoes de Categorias</h2>
+        <button class="btn-secondary" onclick="voltarDeConfig()">Voltar</button>
+      </div>
+      <div class="config-wrapper">
+        <div class="config-section">
+          <div class="config-section-header">
+            <h3>Categorias Padrao</h3>
+            <span class="config-hint">Aplicadas a todos os grupos por padrao</span>
+          </div>
+          <div id="lista-cat-padrao" class="lista-categorias"></div>
+          <button class="btn-add-cat" onclick="abrirModal('modal-categoria-padrao')">+ Nova Categoria Padrao</button>
+        </div>
+        <div class="config-section">
+          <div class="config-section-header">
+            <h3>Categorias por Grupo</h3>
+            <span class="config-hint">Categorias exclusivas de cada grupo</span>
+          </div>
+          <div id="lista-cat-grupos"></div>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -104,8 +130,8 @@
   <div id="modal-cr" class="modal">
     <div class="modal-box">
       <h3>Novo CR</h3>
-      <input id="input-cr" type="text" placeholder="Nome do CR (ex: CR São Paulo 2026)">
-      <label class="input-label">Orçamento inicial (R$)</label>
+      <input id="input-cr" type="text" placeholder="Nome do CR (ex: CR Sao Paulo 2026)">
+      <label class="input-label">Orcamento inicial (R$)</label>
       <input id="input-cr-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
       <div class="modal-actions">
         <button onclick="salvarCR()">Salvar</button>
@@ -117,8 +143,8 @@
   <!-- MODAL EDITAR ORÇAMENTO -->
   <div id="modal-orcamento" class="modal">
     <div class="modal-box">
-      <h3>Editar Orçamento</h3>
-      <label class="input-label">Valor do orçamento (R$)</label>
+      <h3>Editar Orcamento</h3>
+      <label class="input-label">Valor do orcamento (R$)</label>
       <input id="input-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
       <div class="modal-actions">
         <button onclick="salvarOrcamento()">Salvar</button>
@@ -131,7 +157,7 @@
   <div id="modal-grupo" class="modal">
     <div class="modal-box">
       <h3>Novo Grupo</h3>
-      <input id="input-grupo" type="text" placeholder="Nome do grupo (ex: Comitê de Líderes)">
+      <input id="input-grupo" type="text" placeholder="Nome do grupo (ex: Comite de Lideres)">
       <div class="modal-actions">
         <button onclick="salvarGrupo()">Salvar</button>
         <button class="btn-cancel" onclick="fecharModal('modal-grupo')">Cancelar</button>
@@ -142,11 +168,35 @@
   <!-- MODAL REUNIÃO -->
   <div id="modal-reuniao" class="modal">
     <div class="modal-box">
-      <h3>Nova Reunião</h3>
-      <input id="input-reuniao" type="text" placeholder="Nome (ex: Reunião 06/02)">
+      <h3>Nova Reuniao</h3>
+      <input id="input-reuniao" type="text" placeholder="Nome (ex: Reuniao 06/02)">
       <div class="modal-actions">
         <button onclick="salvarReuniao()">Salvar</button>
         <button class="btn-cancel" onclick="fecharModal('modal-reuniao')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CATEGORIA PADRÃO -->
+  <div id="modal-categoria-padrao" class="modal">
+    <div class="modal-box">
+      <h3>Nova Categoria Padrao</h3>
+      <input id="input-cat-padrao" type="text" placeholder="Nome da categoria (ex: Buffet)">
+      <div class="modal-actions">
+        <button onclick="salvarCategoriaPadrao()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-categoria-padrao')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CATEGORIA GRUPO -->
+  <div id="modal-categoria-grupo" class="modal">
+    <div class="modal-box">
+      <h3 id="titulo-modal-cat-grupo">Nova Categoria</h3>
+      <input id="input-cat-grupo" type="text" placeholder="Nome da categoria">
+      <div class="modal-actions">
+        <button onclick="salvarCategoriaGrupo()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-categoria-grupo')">Cancelar</button>
       </div>
     </div>
   </div>

@@ -18,4 +18,33 @@ const DB = {
 
   getItens: (reuniaoId) => DB.get(`itens_${reuniaoId}`),
   saveItens: (reuniaoId, data) => DB.set(`itens_${reuniaoId}`, data),
+
+  // Categorias padrão (globais)
+  getCategoriasPadrao: () => {
+    const salvas = DB.get('categorias_padrao');
+    if (salvas.length > 0) return salvas;
+    const padrao = [
+      { id: 'cat_1', nome: 'Buffet', ativo: true },
+      { id: 'cat_2', nome: 'Ambulancia', ativo: true },
+      { id: 'cat_3', nome: 'Follow Up', ativo: true },
+      { id: 'cat_4', nome: 'Recepcionista', ativo: true },
+      { id: 'cat_5', nome: 'Montagem', ativo: true },
+      { id: 'cat_6', nome: 'Hospedagem', ativo: true },
+      { id: 'cat_7', nome: 'Passagens Aereas', ativo: true },
+    ];
+    DB.set('categorias_padrao', padrao);
+    return padrao;
+  },
+  saveCategoriasPadrao: (data) => DB.set('categorias_padrao', data),
+
+  // Categorias extras por grupo
+  getCategoriasGrupo: (grupoId) => DB.get(`categorias_grupo_${grupoId}`),
+  saveCategoriasGrupo: (grupoId, data) => DB.set(`categorias_grupo_${grupoId}`, data),
+
+  // Todas as categorias ativas de um grupo (padrão + grupo)
+  getCategoriasDisponiveis: (grupoId) => {
+    const padrao = DB.getCategoriasPadrao().filter(c => c.ativo);
+    const extras = DB.getCategoriasGrupo(grupoId).filter(c => c.ativo);
+    return [...padrao, ...extras];
+  },
 };

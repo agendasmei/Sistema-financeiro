@@ -1,6 +1,8 @@
 let crAtual = null;
 let grupoAtual = null;
 let reuniaoAtual = null;
+let telaAnteriorConfig = null;
+let grupoConfigAtual = null;
 
 // ======= NAVEGAÇÃO =======
 function showTela(id) {
@@ -10,11 +12,156 @@ function showTela(id) {
 
 function updateBreadcrumb() {
   const bc = document.getElementById('breadcrumb');
-  let html = `<span onclick="irParaCRs()">🏠 Início</span>`;
-  if (crAtual) html += ` › <span onclick="irParaGrupos()">${crAtual.nome}</span>`;
-  if (grupoAtual) html += ` › <span onclick="irParaReunioes()">${grupoAtual.nome}</span>`;
-  if (reuniaoAtual) html += ` › ${reuniaoAtual.nome}`;
+  let html = `<span onclick="irParaCRs()">Inicio</span>`;
+  if (crAtual) html += ` / <span onclick="irParaGrupos()">${crAtual.nome}</span>`;
+  if (grupoAtual) html += ` / <span onclick="irParaReunioes()">${grupoAtual.nome}</span>`;
+  if (reuniaoAtual) html += ` / ${reuniaoAtual.nome}`;
   bc.innerHTML = html;
+}
+
+// ======= CONFIGURAÇÕES =======
+function abrirConfiguracoes() {
+  telaAnteriorConfig = document.querySelector('.tela.active')?.id || 'tela-crs';
+  renderConfiguracoes();
+  showTela('tela-config');
+}
+
+function voltarDeConfig() {
+  showTela(telaAnteriorConfig || 'tela-crs');
+}
+
+function renderConfiguracoes() {
+  renderCategoriasPadrao();
+  renderCategoriasGrupos();
+}
+
+function renderCategoriasPadrao() {
+  const lista = document.getElementById('lista-cat-padrao');
+  const cats = DB.getCategoriasPadrao();
+  lista.innerHTML = '';
+  cats.forEach((cat, idx) => {
+    const div = document.createElement('div');
+    div.className = `cat-item ${!cat.ativo ? 'cat-inativo' : ''}`;
+    div.innerHTML = `
+      <span class="cat-nome">${cat.nome}</span>
+      <div class="cat-acoes">
+        <label class="toggle">
+          <input type="checkbox" ${cat.ativo ? 'checked' : ''} onchange="toggleCategoriaPadrao('${cat.id}')">
+          <span class="toggle-slider"></span>
+        </label>
+        <button class="btn-icon-danger" onclick="deletarCategoriaPadrao('${cat.id}')">Remover</button>
+      </div>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+function renderCategoriasGrupos() {
+  const container = document.getElementById('lista-cat-grupos');
+  container.innerHTML = '';
+
+  if (!crAtual) {
+    container.innerHTML = '<p class="empty-msg">Abra um CR para ver as categorias por grupo.</p>';
+    return;
+  }
+
+  const grupos = DB.getGrupos(crAtual.id);
+  if (grupos.length === 0) {
+    container.innerHTML = '<p class="empty-msg">Nenhum grupo criado ainda.</p>';
+    return;
+  }
+
+  grupos.forEach(g => {
+    const extras = DB.getCategoriasGrupo(g.id);
+    const section = document.createElement('div');
+    section.className = 'config-grupo-bloco';
+    section.innerHTML = `
+      <div class="config-grupo-titulo">
+        <span>${g.nome}</span>
+        <button class="btn-add-cat-small" onclick="abrirModalCatGrupo('${g.id}', '${g.nome}')">+ Adicionar</button>
+      </div>
+      <div id="cats-grupo-${g.id}" class="lista-categorias"></div>
+    `;
+    container.appendChild(section);
+
+    const lista = document.getElementById(`cats-grupo-${g.id}`);
+    if (extras.length === 0) {
+      lista.innerHTML = '<p class="empty-msg-small">Nenhuma categoria exclusiva. Usa as categorias padrao.</p>';
+    } else {
+      extras.forEach(cat => {
+        const div = document.createElement('div');
+        div.className = `cat-item ${!cat.ativo ? 'cat-inativo' : ''}`;
+        div.innerHTML = `
+          <span class="cat-nome">${cat.nome}</span>
+          <div class="cat-acoes">
+            <label class="toggle">
+              <input type="checkbox" ${cat.ativo ? 'checked' : ''} onchange="toggleCategoriaGrupo('${g.id}', '${cat.id}')">
+              <span class="toggle-slider"></span>
+            </label>
+            <button class="btn-icon-danger" onclick="deletarCategoriaGrupo('${g.id}', '${cat.id}')">Remover</button>
+          </div>
+        `;
+        lista.appendChild(div);
+      });
+    }
+  });
+}
+
+function salvarCategoriaPadrao() {
+  const nome = document.getElementById('input-cat-padrao').value.trim();
+  if (!nome) return alert('Digite um nome!');
+  const cats = DB.getCategoriasPadrao();
+  cats.push({ id: 'cat_' + Date.now(), nome, ativo: true });
+  DB.saveCategoriasPadrao(cats);
+  document.getElementById('input-cat-padrao').value = '';
+  fecharModal('modal-categoria-padrao');
+  renderCategoriasPadrao();
+}
+
+function toggleCategoriaPadrao(id) {
+  const cats = DB.getCategoriasPadrao();
+  const cat = cats.find(c => c.id === id);
+  if (cat) cat.ativo = !cat.ativo;
+  DB.saveCategoriasPadrao(cats);
+  renderCategoriasPadrao();
+}
+
+function deletarCategoriaPadrao(id) {
+  if (!confirm('Remover esta categoria padrao?')) return;
+  DB.saveCategoriasPadrao(DB.getCategoriasPadrao().filter(c => c.id !== id));
+  renderCategoriasPadrao();
+}
+
+function abrirModalCatGrupo(grupoId, grupoNome) {
+  grupoConfigAtual = grupoId;
+  document.getElementById('titulo-modal-cat-grupo').textContent = `Nova Categoria — ${grupoNome}`;
+  document.getElementById('input-cat-grupo').value = '';
+  abrirModal('modal-categoria-grupo');
+}
+
+function salvarCategoriaGrupo() {
+  const nome = document.getElementById('input-cat-grupo').value.trim();
+  if (!nome) return alert('Digite um nome!');
+  const cats = DB.getCategoriasGrupo(grupoConfigAtual);
+  cats.push({ id: 'catg_' + Date.now(), nome, ativo: true });
+  DB.saveCategoriasGrupo(grupoConfigAtual, cats);
+  document.getElementById('input-cat-grupo').value = '';
+  fecharModal('modal-categoria-grupo');
+  renderCategoriasGrupos();
+}
+
+function toggleCategoriaGrupo(grupoId, catId) {
+  const cats = DB.getCategoriasGrupo(grupoId);
+  const cat = cats.find(c => c.id === catId);
+  if (cat) cat.ativo = !cat.ativo;
+  DB.saveCategoriasGrupo(grupoId, cats);
+  renderCategoriasGrupos();
+}
+
+function deletarCategoriaGrupo(grupoId, catId) {
+  if (!confirm('Remover esta categoria?')) return;
+  DB.saveCategoriasGrupo(grupoId, DB.getCategoriasGrupo(grupoId).filter(c => c.id !== catId));
+  renderCategoriasGrupos();
 }
 
 // ======= CRs =======
@@ -36,12 +183,11 @@ function renderCRs() {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="card-icon">📁</div>
       <h3>${cr.nome}</h3>
-      <div class="card-label">Orçamento</div>
+      <div class="card-label">Orcamento</div>
       <div class="total">${formatBRL(orcamento)}</div>
       <small class="card-hint">Clique para abrir</small>
-      <button class="btn-delete" onclick="event.stopPropagation(); deletarCR('${cr.id}')">🗑️ Excluir</button>
+      <button class="btn-delete" onclick="event.stopPropagation(); deletarCR('${cr.id}')">Excluir</button>
     `;
     card.addEventListener('click', () => abrirCR(cr));
     lista.appendChild(card);
@@ -94,14 +240,11 @@ function irParaGrupos() {
 }
 
 function renderGrupos() {
-  const titulo = document.getElementById('titulo-grupos');
-  titulo.textContent = crAtual ? crAtual.nome : 'Grupos';
-
+  document.getElementById('titulo-grupos').textContent = crAtual ? crAtual.nome : 'Grupos';
   const lista = document.getElementById('lista-grupos');
   const grupos = DB.getGrupos(crAtual.id);
   lista.innerHTML = '';
 
-  // Card de orçamento do CR
   const orcamento = DB.getOrcamento(crAtual.id);
   const totalGasto = calcTotalCR(crAtual.id);
   const saldo = orcamento - totalGasto;
@@ -110,20 +253,20 @@ function renderGrupos() {
   resumoEl.className = 'resumo-cr';
   resumoEl.innerHTML = `
     <div class="resumo-item">
-      <span class="resumo-label">Orçamento</span>
+      <span class="resumo-label">Orcamento</span>
       <span class="resumo-valor">${formatBRL(orcamento)}</span>
     </div>
     <div class="resumo-divider"></div>
     <div class="resumo-item">
-      <span class="resumo-label">Total Lançado</span>
+      <span class="resumo-label">Total Lancado</span>
       <span class="resumo-valor resumo-gasto">${formatBRL(totalGasto)}</span>
     </div>
     <div class="resumo-divider"></div>
     <div class="resumo-item">
-      <span class="resumo-label">Saldo Disponível</span>
+      <span class="resumo-label">Saldo Disponivel</span>
       <span class="resumo-valor ${saldo < 0 ? 'resumo-negativo' : 'resumo-saldo'}">${formatBRL(saldo)}</span>
     </div>
-    <button class="btn-editar-orc" onclick="abrirEditarOrcamento()">✏️ Editar orçamento</button>
+    <button class="btn-editar-orc" onclick="abrirEditarOrcamento()">Editar orcamento</button>
   `;
   lista.appendChild(resumoEl);
 
@@ -140,12 +283,11 @@ function renderGrupos() {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="card-icon">👥</div>
       <h3>${g.nome}</h3>
-      <div class="card-label">Total lançado</div>
+      <div class="card-label">Total lancado</div>
       <div class="total">${formatBRL(total)}</div>
       <small class="card-hint">Clique para abrir</small>
-      <button class="btn-delete" onclick="event.stopPropagation(); deletarGrupo('${g.id}')">🗑️ Excluir</button>
+      <button class="btn-delete" onclick="event.stopPropagation(); deletarGrupo('${g.id}')">Excluir</button>
     `;
     card.addEventListener('click', () => abrirGrupo(g));
     lista.appendChild(card);
@@ -199,12 +341,12 @@ function irParaReunioes() {
 }
 
 function renderReunioes() {
-  document.getElementById('titulo-reunioes').textContent = grupoAtual ? grupoAtual.nome : 'Reuniões';
+  document.getElementById('titulo-reunioes').textContent = grupoAtual ? grupoAtual.nome : 'Reunioes';
   const lista = document.getElementById('lista-reunioes');
   const reunioes = DB.getReunioes(grupoAtual.id);
   lista.innerHTML = '';
   if (reunioes.length === 0) {
-    lista.innerHTML = '<p class="empty-msg">Nenhuma reunião ainda. Clique em + Nova Reunião!</p>';
+    lista.innerHTML = '<p class="empty-msg">Nenhuma reuniao ainda. Clique em + Nova Reuniao!</p>';
     return;
   }
   reunioes.forEach(r => {
@@ -213,12 +355,11 @@ function renderReunioes() {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="card-icon">📅</div>
       <h3>${r.nome}</h3>
       <div class="card-label">Total</div>
       <div class="total">${formatBRL(total)}</div>
       <small class="card-hint">${itens.length} item(s)</small>
-      <button class="btn-delete" onclick="event.stopPropagation(); deletarReuniao('${r.id}')">🗑️ Excluir</button>
+      <button class="btn-delete" onclick="event.stopPropagation(); deletarReuniao('${r.id}')">Excluir</button>
     `;
     card.addEventListener('click', () => abrirReuniao(r));
     lista.appendChild(card);
@@ -242,7 +383,7 @@ function abrirReuniao(r) {
 }
 
 function deletarReuniao(id) {
-  if (!confirm('Excluir esta reunião?')) return;
+  if (!confirm('Excluir esta reuniao?')) return;
   DB.saveReunioes(grupoAtual.id, DB.getReunioes(grupoAtual.id).filter(r => r.id !== id));
   renderReunioes();
 }
@@ -258,33 +399,47 @@ function renderItens() {
 
 function addItem() { addItemRow({}); }
 
+function buildCategoriasOptions(selectedNome) {
+  const cats = DB.getCategoriasDisponiveis(grupoAtual.id);
+  let opts = `<option value="">Selecione...</option>`;
+  cats.forEach(c => {
+    opts += `<option value="${c.nome}" ${c.nome === selectedNome ? 'selected' : ''}>${c.nome}</option>`;
+  });
+  return opts;
+}
+
 function addItemRow(item = {}) {
   const tbody = document.getElementById('tbody-itens');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" value="${item.descricao || ''}" placeholder="Descrição"></td>
+    <td>
+      <select class="select-categoria">
+        ${buildCategoriasOptions(item.categoria || '')}
+      </select>
+    </td>
+    <td><input type="text" value="${item.descricao || ''}" placeholder="Descricao"></td>
     <td><input type="text" value="${item.fornecedorCotado || ''}" placeholder="Fornecedor cotado"></td>
     <td><input type="number" value="${item.vlrUnitario || ''}" placeholder="0,00" oninput="calcLinha(this)"></td>
     <td><input type="number" value="${item.qtd || ''}" placeholder="1" oninput="calcLinha(this)"></td>
     <td><input type="number" value="${item.vlrTotal || ''}" placeholder="0,00" readonly></td>
     <td>
       <select>
-        <option ${item.aprovado === 'Sim' ? 'selected' : ''}>✅ Sim</option>
-        <option ${item.aprovado === 'Não' ? 'selected' : ''}>❌ Não</option>
+        <option value="Sim" ${item.aprovado === 'Sim' ? 'selected' : ''}>Sim</option>
+        <option value="Nao" ${item.aprovado === 'Nao' ? 'selected' : ''}>Nao</option>
       </select>
     </td>
-    <td><input type="text" value="${item.numPedido || ''}" placeholder="Nº Pedido"></td>
+    <td><input type="text" value="${item.numPedido || ''}" placeholder="Nr Pedido"></td>
     <td><input type="text" value="${item.fornecedorContratado || ''}" placeholder="Fornecedor contratado"></td>
-    <td><input type="text" value="${item.numNF || ''}" placeholder="Nº NF"></td>
+    <td><input type="text" value="${item.numNF || ''}" placeholder="Nr NF"></td>
     <td style="text-align:center"><input type="checkbox" ${item.as ? 'checked' : ''}></td>
     <td>
       <select>
-        <option value="Pago" ${item.pago === 'Pago' ? 'selected' : ''}>✅ Pago</option>
-        <option value="Pendente" ${item.pago === 'Pendente' ? 'selected' : ''}>⏳ Pendente</option>
-        <option value="A Realizar" ${item.pago === 'A Realizar' ? 'selected' : ''}>📋 A Realizar</option>
+        <option value="Pago" ${item.pago === 'Pago' ? 'selected' : ''}>Pago</option>
+        <option value="Pendente" ${item.pago === 'Pendente' ? 'selected' : ''}>Pendente</option>
+        <option value="A Realizar" ${item.pago === 'A Realizar' ? 'selected' : ''}>A Realizar</option>
       </select>
     </td>
-    <td><button class="btn-remove" onclick="removeRow(this)">🗑️</button></td>
+    <td><button class="btn-remove" onclick="removeRow(this)">Remover</button></td>
   `;
   tbody.appendChild(tr);
   updateTotalItens();
@@ -292,9 +447,9 @@ function addItemRow(item = {}) {
 
 function calcLinha(input) {
   const row = input.closest('tr');
-  const vlrUnit = parseFloat(row.cells[2].querySelector('input').value) || 0;
-  const qtd = parseFloat(row.cells[3].querySelector('input').value) || 0;
-  row.cells[4].querySelector('input').value = (vlrUnit * qtd).toFixed(2);
+  const vlrUnit = parseFloat(row.cells[3].querySelector('input').value) || 0;
+  const qtd = parseFloat(row.cells[4].querySelector('input').value) || 0;
+  row.cells[5].querySelector('input').value = (vlrUnit * qtd).toFixed(2);
   updateTotalItens();
 }
 
@@ -306,7 +461,7 @@ function removeRow(btn) {
 function updateTotalItens() {
   let total = 0;
   document.querySelectorAll('#tbody-itens tr').forEach(row => {
-    total += parseFloat(row.cells[4].querySelector('input').value) || 0;
+    total += parseFloat(row.cells[5].querySelector('input').value) || 0;
   });
   document.getElementById('total-itens').textContent = formatBRL(total);
 }
@@ -316,21 +471,22 @@ function salvarItens() {
   const itens = [];
   rows.forEach(row => {
     itens.push({
-      descricao: row.cells[0].querySelector('input').value,
-      fornecedorCotado: row.cells[1].querySelector('input').value,
-      vlrUnitario: row.cells[2].querySelector('input').value,
-      qtd: row.cells[3].querySelector('input').value,
-      vlrTotal: row.cells[4].querySelector('input').value,
-      aprovado: row.cells[5].querySelector('select').value.replace(/✅|❌/g, '').trim(),
-      numPedido: row.cells[6].querySelector('input').value,
-      fornecedorContratado: row.cells[7].querySelector('input').value,
-      numNF: row.cells[8].querySelector('input').value,
-      as: row.cells[9].querySelector('input').checked,
-      pago: row.cells[10].querySelector('select').value,
+      categoria: row.cells[0].querySelector('select').value,
+      descricao: row.cells[1].querySelector('input').value,
+      fornecedorCotado: row.cells[2].querySelector('input').value,
+      vlrUnitario: row.cells[3].querySelector('input').value,
+      qtd: row.cells[4].querySelector('input').value,
+      vlrTotal: row.cells[5].querySelector('input').value,
+      aprovado: row.cells[6].querySelector('select').value,
+      numPedido: row.cells[7].querySelector('input').value,
+      fornecedorContratado: row.cells[8].querySelector('input').value,
+      numNF: row.cells[9].querySelector('input').value,
+      as: row.cells[10].querySelector('input').checked,
+      pago: row.cells[11].querySelector('select').value,
     });
   });
   DB.saveItens(reuniaoAtual.id, itens);
-  alert('✅ Salvo com sucesso!');
+  alert('Salvo com sucesso!');
   irParaReunioes();
 }
 
@@ -348,38 +504,43 @@ function renderBalancete() {
   const orcamento = DB.getOrcamento(crAtual.id);
   const grupos = DB.getGrupos(crAtual.id);
 
-  // Coleta dados por grupo
   let totalPassivos = 0;
   let totalCirculantes = 0;
 
+  // Coleta dados por grupo e por categoria
   const dadosGrupos = grupos.map(g => {
-    let pagos = 0, pendentes = 0;
-    const subItens = [];
+    const categorias = {};
 
     DB.getReunioes(g.id).forEach(r => {
       DB.getItens(r.id).forEach(i => {
         const val = parseFloat(i.vlrTotal) || 0;
         const pago = (i.pago || '').trim();
-        if (pago === 'Pago') pagos += val;
-        else if (pago === 'Pendente') pendentes += val;
+        const cat = (i.categoria || 'Sem Categoria').trim();
+
+        if (!categorias[cat]) categorias[cat] = { pagos: 0, pendentes: 0 };
+
+        if (pago === 'Pago') categorias[cat].pagos += val;
+        else if (pago === 'Pendente') categorias[cat].pendentes += val;
       });
     });
 
-    totalPassivos += pagos;
-    totalCirculantes += pendentes;
+    const totalPagos = Object.values(categorias).reduce((s, c) => s + c.pagos, 0);
+    const totalPendentes = Object.values(categorias).reduce((s, c) => s + c.pendentes, 0);
 
-    return { nome: g.nome, pagos, pendentes };
+    totalPassivos += totalPagos;
+    totalCirculantes += totalPendentes;
+
+    return { nome: g.nome, categorias, totalPagos, totalPendentes };
   });
 
   const saldo = orcamento - totalPassivos - totalCirculantes;
 
-  // Monta o HTML do balancete
   let html = `
     <div class="balancete-wrapper">
       <table class="balancete-table">
         <thead>
           <tr>
-            <th>Código</th>
+            <th>Codigo</th>
             <th>Plano de Contas</th>
             <th colspan="2">Valor</th>
           </tr>
@@ -395,7 +556,7 @@ function renderBalancete() {
           </tr>
           <tr class="bal-sub">
             <td>1.1</td>
-            <td>CNI</td>
+            <td>Orcamento Disponivel</td>
             <td class="bal-valor-label">R$</td>
             <td class="bal-valor">${formatBRL(orcamento)}</td>
           </tr>
@@ -409,16 +570,30 @@ function renderBalancete() {
           </tr>
   `;
 
-  dadosGrupos.forEach((g, idx) => {
-    const codigo = `2.${idx + 1}`;
+  dadosGrupos.forEach((g, gIdx) => {
+    const codigoGrupo = `2.${gIdx + 1}`;
     html += `
       <tr class="bal-grupo-sub-header">
-        <td>${codigo}</td>
+        <td>${codigoGrupo}</td>
         <td>${g.nome}</td>
         <td class="bal-valor-label">R$</td>
-        <td class="bal-valor">${g.pagos > 0 ? formatBRL(g.pagos) : '<span class="bal-zero">-</span>'}</td>
+        <td class="bal-valor">${g.totalPagos > 0 ? formatBRL(g.totalPagos) : '<span class="bal-zero">—</span>'}</td>
       </tr>
     `;
+    let catIdx = 1;
+    Object.entries(g.categorias).forEach(([catNome, vals]) => {
+      if (vals.pagos > 0) {
+        html += `
+          <tr class="bal-sub-item">
+            <td>${codigoGrupo}.${catIdx}</td>
+            <td>${catNome}</td>
+            <td class="bal-valor-label">R$</td>
+            <td class="bal-valor">${formatBRL(vals.pagos)}</td>
+          </tr>
+        `;
+        catIdx++;
+      }
+    });
   });
 
   html += `
@@ -431,23 +606,37 @@ function renderBalancete() {
           </tr>
   `;
 
-  dadosGrupos.forEach((g, idx) => {
-    const codigo = `3.${idx + 1}`;
+  dadosGrupos.forEach((g, gIdx) => {
+    const codigoGrupo = `3.${gIdx + 1}`;
     html += `
       <tr class="bal-grupo-sub-header">
-        <td>${codigo}</td>
+        <td>${codigoGrupo}</td>
         <td>${g.nome}</td>
         <td class="bal-valor-label">R$</td>
-        <td class="bal-valor">${g.pendentes > 0 ? formatBRL(g.pendentes) : '<span class="bal-zero">-</span>'}</td>
+        <td class="bal-valor">${g.totalPendentes > 0 ? formatBRL(g.totalPendentes) : '<span class="bal-zero">—</span>'}</td>
       </tr>
     `;
+    let catIdx = 1;
+    Object.entries(g.categorias).forEach(([catNome, vals]) => {
+      if (vals.pendentes > 0) {
+        html += `
+          <tr class="bal-sub-item">
+            <td>${codigoGrupo}.${catIdx}</td>
+            <td>${catNome}</td>
+            <td class="bal-valor-label">R$</td>
+            <td class="bal-valor">${formatBRL(vals.pendentes)}</td>
+          </tr>
+        `;
+        catIdx++;
+      }
+    });
   });
 
   html += `
           <!-- 4. SALDO -->
           <tr class="bal-saldo-row">
             <td><strong>4.</strong></td>
-            <td><strong>Saldo Disponível</strong></td>
+            <td><strong>Saldo Disponivel</strong></td>
             <td class="bal-valor-label">R$</td>
             <td class="bal-valor bal-saldo-valor ${saldo < 0 ? 'bal-negativo' : ''}">
               <strong>${formatBRL(saldo)}</strong>
