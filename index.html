@@ -3,14 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Financeiro</title>
+  <title>Controle Financeiro</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <header>
     <div class="header-inner">
-      <span class="header-title" onclick="irParaCRs()">💰 Sistema Financeiro</span>
+      <span class="header-title" onclick="irParaCRs()">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="12" width="4" height="9" rx="1" fill="#0F766E"/>
+          <rect x="10" y="7" width="4" height="14" rx="1" fill="#0F766E"/>
+          <rect x="17" y="3" width="4" height="18" rx="1" fill="#0F766E"/>
+        </svg>
+        Controle Financeiro
+      </span>
       <div class="header-nav">
         <button class="btn-voltar" id="btn-voltar" onclick="voltarTela()" style="display:none">← Voltar</button>
         <button class="btn-config" onclick="abrirConfiguracoes()" title="Configuracoes">⚙️</button>
@@ -52,6 +59,7 @@
         <h2 id="titulo-itens">Itens</h2>
         <button onclick="addItem()">+ Adicionar Item</button>
       </div>
+
       <div class="resumo-reuniao">
         <div class="resumo-reuniao-item">
           <span class="resumo-label">Total</span>
@@ -70,16 +78,46 @@
           <span class="resumo-valor resumo-negativo" id="total-pendente-topo">R$ 0,00</span>
         </div>
       </div>
+
       <div class="table-wrapper">
-        <table id="tbl-itens">
+        <!-- SEÇÃO: ORÇAMENTO -->
+        <div class="secao-tabela-header">Orçamento</div>
+        <table id="tbl-orcamento">
           <thead>
             <tr>
               <th>Categoria</th>
-              <th>Descricao</th>
+              <th>Descrição</th>
               <th>Fornecedor</th>
               <th>Vlr Unit.</th>
               <th>Qtd</th>
               <th>Vlr Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-orcamento"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5"><strong>Total Orçamento</strong></td>
+              <td id="total-orcamento">R$ 0,00</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- SEÇÃO: CUSTO DA REUNIÃO -->
+        <div class="secao-tabela-header secao-custo">
+          <span id="secao-custo-nome">Custo — Reunião</span>
+        </div>
+        <table id="tbl-itens">
+          <thead>
+            <tr>
+              <th>Categoria</th>
+              <th>Descrição</th>
+              <th>Fornecedor</th>
+              <th>Vlr Unit.</th>
+              <th>Qtd</th>
+              <th>Vlr Total</th>
+              <th>Vlr por Reunião</th>
               <th>Nr Pedido</th>
               <th>Nr NF</th>
               <th>AS</th>
@@ -92,11 +130,13 @@
             <tr>
               <td colspan="5"><strong>Total</strong></td>
               <td id="total-itens">R$ 0,00</td>
+              <td id="total-vlr-reuniao">R$ 0,00</td>
               <td colspan="5"></td>
             </tr>
           </tfoot>
         </table>
       </div>
+
       <button class="btn-salvar" onclick="salvarItens()">Salvar</button>
     </div>
 
@@ -125,7 +165,7 @@
         <div class="config-section">
           <div class="config-section-header">
             <h3>Categorias por CR</h3>
-            <span class="config-hint">Cada CR herda as categorias padrao e pode ter as suas proprias</span>
+            <span class="config-hint">Clique em um CR para configurar suas categorias</span>
           </div>
           <div id="lista-cat-crs"></div>
         </div>
