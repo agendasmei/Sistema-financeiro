@@ -10,19 +10,16 @@
 
   <header>
     <div class="header-inner">
-      <div class="header-logo">
-        <span class="header-title">Sistema Financeiro</span>
+      <span class="header-title" onclick="irParaCRs()">💰 Sistema Financeiro</span>
+      <div class="header-nav">
+        <button class="btn-voltar" id="btn-voltar" onclick="voltarTela()" style="display:none">← Voltar</button>
+        <button class="btn-config" onclick="abrirConfiguracoes()" title="Configuracoes">⚙️</button>
       </div>
-      <nav class="header-nav">
-        <span id="breadcrumb">Inicio</span>
-        <button class="btn-config" onclick="abrirConfiguracoes()">Configuracoes</button>
-      </nav>
     </div>
   </header>
 
   <main>
 
-    <!-- TELA CRs -->
     <div id="tela-crs" class="tela active">
       <div class="tela-header">
         <h2>Meus CRs</h2>
@@ -31,7 +28,6 @@
       <div id="lista-crs" class="grid-cards"></div>
     </div>
 
-    <!-- TELA GRUPOS -->
     <div id="tela-grupos" class="tela">
       <div class="tela-header">
         <h2 id="titulo-grupos">Grupos</h2>
@@ -43,7 +39,6 @@
       <div id="lista-grupos" class="grid-cards"></div>
     </div>
 
-    <!-- TELA REUNIÕES -->
     <div id="tela-reunioes" class="tela">
       <div class="tela-header">
         <h2 id="titulo-reunioes">Reunioes</h2>
@@ -52,11 +47,28 @@
       <div id="lista-reunioes" class="grid-cards"></div>
     </div>
 
-    <!-- TELA ITENS -->
     <div id="tela-itens" class="tela">
       <div class="tela-header">
         <h2 id="titulo-itens">Itens</h2>
         <button onclick="addItem()">+ Adicionar Item</button>
+      </div>
+      <div class="resumo-reuniao">
+        <div class="resumo-reuniao-item">
+          <span class="resumo-label">Total</span>
+          <span class="resumo-valor" id="total-reuniao-topo">R$ 0,00</span>
+        </div>
+        <div class="resumo-reuniao-item">
+          <span class="resumo-label">A Pagar</span>
+          <span class="resumo-valor resumo-gasto" id="total-apagar-topo">R$ 0,00</span>
+        </div>
+        <div class="resumo-reuniao-item">
+          <span class="resumo-label">Pago</span>
+          <span class="resumo-valor resumo-saldo" id="total-pago-topo">R$ 0,00</span>
+        </div>
+        <div class="resumo-reuniao-item">
+          <span class="resumo-label">Pendente</span>
+          <span class="resumo-valor resumo-negativo" id="total-pendente-topo">R$ 0,00</span>
+        </div>
       </div>
       <div class="table-wrapper">
         <table id="tbl-itens">
@@ -64,16 +76,14 @@
             <tr>
               <th>Categoria</th>
               <th>Descricao</th>
-              <th>Fornecedor Cotado</th>
-              <th>Vlr Unitario</th>
+              <th>Fornecedor</th>
+              <th>Vlr Unit.</th>
               <th>Qtd</th>
               <th>Vlr Total</th>
-              <th>Aprovado</th>
               <th>Nr Pedido</th>
-              <th>Fornecedor Contratado</th>
               <th>Nr NF</th>
               <th>AS</th>
-              <th>Status</th>
+              <th>Pago?</th>
               <th></th>
             </tr>
           </thead>
@@ -82,7 +92,7 @@
             <tr>
               <td colspan="5"><strong>Total</strong></td>
               <td id="total-itens">R$ 0,00</td>
-              <td colspan="7"></td>
+              <td colspan="5"></td>
             </tr>
           </tfoot>
         </table>
@@ -90,7 +100,6 @@
       <button class="btn-salvar" onclick="salvarItens()">Salvar</button>
     </div>
 
-    <!-- TELA BALANCETE -->
     <div id="tela-balancete" class="tela">
       <div class="tela-header">
         <h2 id="titulo-balancete">Balancete</h2>
@@ -99,38 +108,37 @@
       <div id="conteudo-balancete"></div>
     </div>
 
-    <!-- TELA CONFIGURAÇÕES -->
     <div id="tela-config" class="tela">
       <div class="tela-header">
-        <h2>Configuracoes de Categorias</h2>
+        <h2>Configuracoes</h2>
         <button class="btn-secondary" onclick="voltarDeConfig()">Voltar</button>
       </div>
       <div class="config-wrapper">
         <div class="config-section">
           <div class="config-section-header">
             <h3>Categorias Padrao</h3>
-            <span class="config-hint">Aplicadas a todos os grupos por padrao</span>
+            <span class="config-hint">Aplicadas a todos os CRs por padrao</span>
           </div>
           <div id="lista-cat-padrao" class="lista-categorias"></div>
           <button class="btn-add-cat" onclick="abrirModal('modal-categoria-padrao')">+ Nova Categoria Padrao</button>
         </div>
         <div class="config-section">
           <div class="config-section-header">
-            <h3>Categorias por Grupo</h3>
-            <span class="config-hint">Categorias exclusivas de cada grupo</span>
+            <h3>Categorias por CR</h3>
+            <span class="config-hint">Cada CR herda as categorias padrao e pode ter as suas proprias</span>
           </div>
-          <div id="lista-cat-grupos"></div>
+          <div id="lista-cat-crs"></div>
         </div>
       </div>
     </div>
 
   </main>
 
-  <!-- MODAL CR -->
+  <!-- MODAIS -->
   <div id="modal-cr" class="modal">
     <div class="modal-box">
       <h3>Novo CR</h3>
-      <input id="input-cr" type="text" placeholder="Nome do CR (ex: CR Sao Paulo 2026)">
+      <input id="input-cr" type="text" placeholder="Nome do CR">
       <label class="input-label">Orcamento inicial (R$)</label>
       <input id="input-cr-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
       <div class="modal-actions">
@@ -140,11 +148,10 @@
     </div>
   </div>
 
-  <!-- MODAL EDITAR ORÇAMENTO -->
   <div id="modal-orcamento" class="modal">
     <div class="modal-box">
       <h3>Editar Orcamento</h3>
-      <label class="input-label">Valor do orcamento (R$)</label>
+      <label class="input-label">Valor (R$)</label>
       <input id="input-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
       <div class="modal-actions">
         <button onclick="salvarOrcamento()">Salvar</button>
@@ -153,11 +160,10 @@
     </div>
   </div>
 
-  <!-- MODAL GRUPO -->
   <div id="modal-grupo" class="modal">
     <div class="modal-box">
       <h3>Novo Grupo</h3>
-      <input id="input-grupo" type="text" placeholder="Nome do grupo (ex: Comite de Lideres)">
+      <input id="input-grupo" type="text" placeholder="Nome do grupo">
       <div class="modal-actions">
         <button onclick="salvarGrupo()">Salvar</button>
         <button class="btn-cancel" onclick="fecharModal('modal-grupo')">Cancelar</button>
@@ -165,7 +171,6 @@
     </div>
   </div>
 
-  <!-- MODAL REUNIÃO -->
   <div id="modal-reuniao" class="modal">
     <div class="modal-box">
       <h3>Nova Reuniao</h3>
@@ -177,11 +182,10 @@
     </div>
   </div>
 
-  <!-- MODAL CATEGORIA PADRÃO -->
   <div id="modal-categoria-padrao" class="modal">
     <div class="modal-box">
       <h3>Nova Categoria Padrao</h3>
-      <input id="input-cat-padrao" type="text" placeholder="Nome da categoria (ex: Buffet)">
+      <input id="input-cat-padrao" type="text" placeholder="Nome da categoria">
       <div class="modal-actions">
         <button onclick="salvarCategoriaPadrao()">Salvar</button>
         <button class="btn-cancel" onclick="fecharModal('modal-categoria-padrao')">Cancelar</button>
@@ -189,14 +193,38 @@
     </div>
   </div>
 
-  <!-- MODAL CATEGORIA GRUPO -->
-  <div id="modal-categoria-grupo" class="modal">
+  <div id="modal-categoria-cr" class="modal">
     <div class="modal-box">
-      <h3 id="titulo-modal-cat-grupo">Nova Categoria</h3>
-      <input id="input-cat-grupo" type="text" placeholder="Nome da categoria">
+      <h3 id="titulo-modal-cat-cr">Nova Categoria</h3>
+      <input id="input-cat-cr" type="text" placeholder="Nome da categoria">
       <div class="modal-actions">
-        <button onclick="salvarCategoriaGrupo()">Salvar</button>
-        <button class="btn-cancel" onclick="fecharModal('modal-categoria-grupo')">Cancelar</button>
+        <button onclick="salvarCategoriaCR()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-categoria-cr')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-link" class="modal">
+    <div class="modal-box modal-box-sm">
+      <h3 id="titulo-modal-link">Informacoes</h3>
+      <label class="input-label">Numero</label>
+      <input id="input-link-numero" type="text" placeholder="Ex: 3699">
+      <label class="input-label">Link</label>
+      <input id="input-link-url" type="text" placeholder="https://...">
+      <div class="modal-actions">
+        <button onclick="salvarLink()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-link')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-confirmar-delete" class="modal">
+    <div class="modal-box modal-box-sm">
+      <h3>Confirmar exclusao</h3>
+      <p style="font-size:14px;color:#4a5568;">Deseja realmente remover este item?</p>
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="confirmarRemoveRow()">Remover</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-confirmar-delete')">Cancelar</button>
       </div>
     </div>
   </div>

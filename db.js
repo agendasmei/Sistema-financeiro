@@ -37,14 +37,20 @@ const DB = {
   },
   saveCategoriasPadrao: (data) => DB.set('categorias_padrao', data),
 
-  // Categorias extras por grupo
-  getCategoriasGrupo: (grupoId) => DB.get(`categorias_grupo_${grupoId}`),
-  saveCategoriasGrupo: (grupoId, data) => DB.set(`categorias_grupo_${grupoId}`, data),
+  // Categorias extras por CR (substituindo por grupo)
+  getCategoriasExtrasCR: (crId) => DB.get(`categorias_cr_${crId}`),
+  saveCategoriasExtrasCR: (crId, data) => DB.set(`categorias_cr_${crId}`, data),
 
-  // Todas as categorias ativas de um grupo (padrão + grupo)
-  getCategoriasDisponiveis: (grupoId) => {
-    const padrao = DB.getCategoriasPadrao().filter(c => c.ativo);
-    const extras = DB.getCategoriasGrupo(grupoId).filter(c => c.ativo);
+  // Categorias desativadas por CR (das categorias padrão)
+  getCategoriasDesativadasCR: (crId) => DB.get(`cats_desativadas_cr_${crId}`),
+  saveCategoriasDesativadasCR: (crId, data) => DB.set(`cats_desativadas_cr_${crId}`, data),
+
+  // Todas as categorias ativas de um CR (padrão filtradas + extras do CR)
+  getCategoriasDisponiveis: (crId) => {
+    const desativadas = DB.getCategoriasDesativadasCR(crId);
+    const padrao = DB.getCategoriasPadrao()
+      .filter(c => c.ativo && !desativadas.includes(c.id));
+    const extras = DB.getCategoriasExtrasCR(crId).filter(c => c.ativo);
     return [...padrao, ...extras];
   },
 };
