@@ -254,6 +254,22 @@
     </div>
   </div>
 </div>
+<!-- MODAL NR PEDIDO -->
+<div id="modal-pedido" class="modal">
+  <div class="modal-box modal-box-sm">
+    <h3>📋 Nº do Pedido</h3>
+    <label class="input-label">Número</label>
+    <input id="modal-pedido-num" type="text" placeholder="Ex: 12345"
+      onkeydown="if(event.key==='Enter') salvarModalPedido()">
+    <label class="input-label">Link (opcional)</label>
+    <input id="modal-pedido-link" type="text" placeholder="https://..."
+      onkeydown="if(event.key==='Enter') salvarModalPedido()">
+    <div class="modal-actions">
+      <button onclick="salvarModalPedido()">Salvar</button>
+      <button class="btn-cancel" onclick="fecharModal('modal-pedido')">Cancelar</button>
+    </div>
+  </div>
+</div>
 
   <!-- Menu Contexto -->
   <div id="ctx-menu" class="ctx-menu"></div>
