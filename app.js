@@ -139,39 +139,32 @@ function abrirCtxMenu(e, tipo, id) {
   if (tipo === 'cr') {
     const cr = DB.getCRs().find(c => c.id === id);
     menuHtml = `
-      <div class="ctx-menu-item" onclick="fecharCtxMenu(); abrirEditarNome('Editar Nome do CR', '${esc(cr?.nome||'')}', function(n){ editarNomeCR('${id}',n); })">
-        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Editar Nome
+      <div class="ctx-menu-item" onclick="event.stopPropagation(); fecharCtxMenu(); abrirEditarNome('Editar Nome do CR', '${esc(cr?.nome||'')}', function(n){ editarNomeCR('${id}',n); })">
+        ✏️ Editar Nome
       </div>
-      <div class="ctx-menu-item" onclick="fecharCtxMenu(); abrirEditarOrcamento('${id}')">
-        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-        Editar Orcamento
+      <div class="ctx-menu-item" onclick="event.stopPropagation(); fecharCtxMenu(); abrirEditarOrcamento('${id}')">
+        💲 Editar Orçamento
       </div>
-      <div class="ctx-menu-item ctx-danger" onclick="fecharCtxMenu(); deletarCR('${id}')">
-        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-        Excluir CR
+      <div class="ctx-menu-item ctx-danger" onclick="event.stopPropagation(); fecharCtxMenu(); deletarCR('${id}')">
+        🗑️ Excluir CR
       </div>`;
   } else if (tipo === 'grupo') {
     const g = DB.getGrupos(crAtual.id).find(g => g.id === id);
     menuHtml = `
-      <div class="ctx-menu-item" onclick="fecharCtxMenu(); abrirEditarNome('Editar Nome do Grupo', '${esc(g?.nome||'')}', function(n){ editarNomeGrupo('${id}',n); })">
-        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Editar Nome
+      <div class="ctx-menu-item" onclick="event.stopPropagation(); fecharCtxMenu(); abrirEditarNome('Editar Nome do Grupo', '${esc(g?.nome||'')}', function(n){ editarNomeGrupo('${id}',n); })">
+        ✏️ Editar Nome
       </div>
-      <div class="ctx-menu-item ctx-danger" onclick="fecharCtxMenu(); deletarGrupo('${id}')">
-        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-        Excluir Grupo
+      <div class="ctx-menu-item ctx-danger" onclick="event.stopPropagation(); fecharCtxMenu(); deletarGrupo('${id}')">
+        🗑️ Excluir Grupo
       </div>`;
   } else if (tipo === 'evento') {
     const ev = DB.getEventos(grupoAtual.id).find(e => e.id === id);
     menuHtml = `
-      <div class="ctx-menu-item" onclick="fecharCtxMenu(); abrirEditarNome('Editar Nome do Evento', '${esc(ev?.nome||'')}', function(n){ editarNomeEvento('${id}',n); })">
-        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Editar Nome
+      <div class="ctx-menu-item" onclick="event.stopPropagation(); fecharCtxMenu(); abrirEditarNome('Editar Nome do Evento', '${esc(ev?.nome||'')}', function(n){ editarNomeEvento('${id}',n); })">
+        ✏️ Editar Nome
       </div>
-      <div class="ctx-menu-item ctx-danger" onclick="fecharCtxMenu(); deletarEvento('${id}')">
-        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-        Excluir Evento
+      <div class="ctx-menu-item ctx-danger" onclick="event.stopPropagation(); fecharCtxMenu(); deletarEvento('${id}')">
+        🗑️ Excluir Evento
       </div>`;
   }
 
@@ -435,7 +428,6 @@ function renderGrupoDetalhe() {
 
   let bodyHtml = '';
   itens.forEach((item, idx) => {
-    // Nr Pedido com popover
     const pedNum = esc(item.nrPedido||'');
     const pedLink = esc(item.nrPedidoLink||'');
 
@@ -447,17 +439,22 @@ function renderGrupoDetalhe() {
       <td><input type="number" data-f="qtd" data-i="${idx}" value="${item.qtd||''}" placeholder="0" oninput="calcLinhaGrupo(${idx})"></td>
       <td><input type="number" data-f="vlrTotal" data-i="${idx}" value="${item.vlrTotal||''}" placeholder="0,00" oninput="updateResumo()"></td>
       <td>
-        <div class="popover-trigger" onclick="togglePopover(event, 'pop-ped-${idx}')">
-          <input type="text" data-f="nrPedido" data-i="${idx}" value="${pedNum}" placeholder="Nr Pedido" readonly style="cursor:pointer">
-          <span class="popover-link-icon">${pedLink ? '🔗' : '+'}</span>
+        <div class="nr-pedido-cell">
+          ${pedNum
+            ? (pedLink
+              ? `<a href="${pedLink}" target="_blank" class="nr-pedido-link" title="Abrir link">${pedNum}</a>`
+              : `<span class="nr-pedido-texto">${pedNum}</span>`)
+            : '<span class="nr-pedido-vazio">—</span>'
+          }
+          <button class="btn-nr-pedido-edit" onclick="togglePopover(event, 'pop-ped-${idx}')" title="Editar">✏️</button>
         </div>
+        <input type="hidden" data-f="nrPedido" data-i="${idx}" value="${pedNum}">
         <div class="popover-panel" id="pop-ped-${idx}">
-          <label>Numero</label>
+          <label>Número</label>
           <input type="text" id="pop-ped-num-${idx}" value="${pedNum}" placeholder="Ex: 12345">
           <label>Link</label>
           <input type="text" id="pop-ped-link-${idx}" value="${pedLink}" placeholder="https://...">
           <div class="popover-actions">
-            ${pedLink ? `<button class="btn-secondary" onclick="window.open(document.getElementById('pop-ped-link-${idx}').value,'_blank')">Abrir</button>` : ''}
             <button onclick="salvarPopoverPedido(${idx})">OK</button>
           </div>
         </div>
@@ -529,10 +526,17 @@ document.addEventListener('click', () => {
 });
 
 function salvarPopoverPedido(idx) {
-  const num = document.getElementById(`pop-ped-num-${idx}`).value;
+  const num = document.getElementById(`pop-ped-num-${idx}`).value.trim();
+  const link = document.getElementById(`pop-ped-link-${idx}`).value.trim();
   const row = document.querySelector(`tr[data-row="${idx}"]`);
   if (row) row.querySelector('[data-f="nrPedido"]').value = num;
   document.getElementById(`pop-ped-${idx}`).classList.remove('open');
+
+  // Salva imediatamente e re-renderiza pra atualizar o link visual
+  const itens = coletarItensDoDOM();
+  DB.saveItensGrupo(grupoAtual.id, itens);
+  renderGrupoDetalhe();
+  showToast('Nº do pedido atualizado!');
 }
 
 function salvarPopoverNF(idx, evId) {
@@ -701,13 +705,15 @@ function renderBalancete() {
   const grupos = DB.getGrupos(crAtual.id);
   const orc = DB.getOrcamento(crAtual.id);
 
-  if (!grupos.length) { container.innerHTML = '<p class="empty-msg">Nenhum grupo encontrado.</p>'; return; }
-
-  // Coletar dados separados por pago / não pago, agrupados por grupo > categoria
-  const passivos = {};     // pago = true
-  const circulante = {};   // pago = false
+  const passivos = {};
+  const circulante = {};
   let totalPassivos = 0;
   let totalCirculante = 0;
+
+  grupos.forEach(g => {
+    passivos[g.nome] = {};
+    circulante[g.nome] = {};
+  });
 
   grupos.forEach(g => {
     const eventos = DB.getEventos(g.id);
@@ -720,118 +726,100 @@ function renderBalancete() {
         if (d) {
           const v = parseFloat(d.valor) || 0;
           if (v === 0) return;
-
           const destino = d.pago ? passivos : circulante;
-          const totalRef = d.pago ? 'passivos' : 'circulante';
-
           if (!destino[g.nome]) destino[g.nome] = {};
           if (!destino[g.nome][catNome]) destino[g.nome][catNome] = 0;
           destino[g.nome][catNome] += v;
-
-          if (totalRef === 'passivos') totalPassivos += v;
-          else totalCirculante += v;
+          if (d.pago) totalPassivos += v; else totalCirculante += v;
         }
       });
     });
   });
 
-  let html = '';
-
-  // SEÇÃO 1: ENTRADAS
-  html += `
-    <div class="balancete-section bal-section-entradas">
-      <div class="balancete-section-title">1. ENTRADAS</div>
-      <div class="balancete-grupo">
-        <div class="balancete-cat-row" style="padding-left:16px;">
-          <span>1.1 Orcamento</span>
-          <strong style="color:#0F766E">${formatBRL(orc)}</strong>
-        </div>
-        <div class="balancete-total">
-          <span>Total Entradas</span><span style="color:#0F766E">${formatBRL(orc)}</span>
-        </div>
-      </div>
-    </div>`;
-
-  // SEÇÃO 2: PASSIVOS (Despesas Pagas)
-  html += `<div class="balancete-section bal-section-passivos">
-    <div class="balancete-section-title">2. PASSIVOS (Despesas Pagas)</div>`;
-  let pIdx = 1;
-  if (Object.keys(passivos).length === 0) {
-    html += '<div class="balancete-grupo"><div class="balancete-cat-row" style="padding-left:16px;"><span>Nenhuma despesa paga</span><span>R$ 0,00</span></div></div>';
-  } else {
-    for (const grupoNome in passivos) {
-      let subTotal = 0;
-      let catHtml = '';
-      let cIdx = 1;
-      for (const catNome in passivos[grupoNome]) {
-        const v = passivos[grupoNome][catNome];
-        subTotal += v;
-        catHtml += `<div class="balancete-cat-row"><span>2.${pIdx}.${cIdx} ${esc(catNome)}</span><strong>${formatBRL(v)}</strong></div>`;
-        cIdx++;
-      }
-      html += `
-        <div class="balancete-grupo">
-          <div class="balancete-grupo-header">2.${pIdx} ${esc(grupoNome)}</div>
-          ${catHtml}
-          <div class="balancete-total"><span>Subtotal</span><span>${formatBRL(subTotal)}</span></div>
-        </div>`;
-      pIdx++;
-    }
-  }
-  html += `
-    <div class="balancete-grupo">
-      <div class="balancete-total" style="border-top:none;font-weight:700;">
-        <span>Total Passivos</span><span style="color:#DC2626">${formatBRL(totalPassivos)}</span>
-      </div>
-    </div>
-  </div>`;
-
-  // SEÇÃO 3: PASSIVOS CIRCULANTE (Despesas Pendentes)
-  html += `<div class="balancete-section bal-section-circulante">
-    <div class="balancete-section-title">3. PASSIVOS CIRCULANTE (Despesas Pendentes)</div>`;
-  let cIdxG = 1;
-  if (Object.keys(circulante).length === 0) {
-    html += '<div class="balancete-grupo"><div class="balancete-cat-row" style="padding-left:16px;"><span>Nenhuma despesa pendente</span><span>R$ 0,00</span></div></div>';
-  } else {
-    for (const grupoNome in circulante) {
-      let subTotal = 0;
-      let catHtml = '';
-      let cIdx = 1;
-      for (const catNome in circulante[grupoNome]) {
-        const v = circulante[grupoNome][catNome];
-        subTotal += v;
-        catHtml += `<div class="balancete-cat-row"><span>3.${cIdxG}.${cIdx} ${esc(catNome)}</span><strong>${formatBRL(v)}</strong></div>`;
-        cIdx++;
-      }
-      html += `
-        <div class="balancete-grupo">
-          <div class="balancete-grupo-header">3.${cIdxG} ${esc(grupoNome)}</div>
-          ${catHtml}
-          <div class="balancete-total"><span>Subtotal</span><span>${formatBRL(subTotal)}</span></div>
-        </div>`;
-      cIdxG++;
-    }
-  }
-  html += `
-    <div class="balancete-grupo">
-      <div class="balancete-total" style="border-top:none;font-weight:700;">
-        <span>Total Passivos Circulante</span><span style="color:#F59E0B">${formatBRL(totalCirculante)}</span>
-      </div>
-    </div>
-  </div>`;
-
-  // RESUMO FINAL
   const saldo = orc - totalPassivos - totalCirculante;
-  html += `
-    <div class="balancete-resumo">
-      <div class="bal-row"><span>Entradas</span><span style="color:#0F766E">${formatBRL(orc)}</span></div>
-      <div class="bal-row"><span>(-) Passivos</span><span style="color:#DC2626">${formatBRL(totalPassivos)}</span></div>
-      <div class="bal-row"><span>(-) Passivos Circulante</span><span style="color:#F59E0B">${formatBRL(totalCirculante)}</span></div>
-      <div class="bal-divider"></div>
-      <div class="bal-row bal-saldo"><span>SALDO DISPONÍVEL</span><span style="color:${saldo>=0?'#0F766E':'#EF4444'}">${formatBRL(saldo)}</span></div>
-    </div>`;
 
-  container.innerHTML = html;
+  let rows = '';
+
+  rows += `<tr class="bal-row-secao">
+    <td>1.</td><td><strong>Entradas</strong></td><td>R$</td><td><strong style="color:#0F766E">${formatBRL(orc)}</strong></td>
+  </tr>`;
+  rows += `<tr>
+    <td style="padding-left:24px;color:#6B7280;">1.1</td><td>Orçamento Disponível</td><td>R$</td><td>${formatBRL(orc)}</td>
+  </tr>`;
+
+  rows += `<tr class="bal-row-secao">
+    <td>2.</td><td><strong>Passivos</strong></td><td>R$</td><td><strong style="color:#DC2626">${formatBRL(totalPassivos)}</strong></td>
+  </tr>`;
+
+  let pIdx = 1;
+  for (const grupoNome in passivos) {
+    const cats = passivos[grupoNome];
+    const temCats = Object.keys(cats).length > 0;
+    let subTotal = 0;
+    for (const c in cats) subTotal += cats[c];
+
+    rows += `<tr class="bal-row-grupo">
+      <td>2.${pIdx}</td><td>${esc(grupoNome)}</td><td>R$</td>
+      <td>${temCats ? formatBRL(subTotal) : '<span class="bal-val-vazio">—</span>'}</td>
+    </tr>`;
+
+    if (temCats) {
+      let cIdx = 1;
+      for (const catNome in cats) {
+        rows += `<tr class="bal-row-cat">
+          <td>2.${pIdx}.${cIdx}</td><td>${esc(catNome)}</td><td>R$</td><td>${formatBRL(cats[catNome])}</td>
+        </tr>`;
+        cIdx++;
+      }
+    }
+    pIdx++;
+  }
+
+  rows += `<tr class="bal-row-secao">
+    <td>3.</td><td><strong>Passivos Circulantes</strong></td><td>R$</td><td><strong style="color:#D97706">${formatBRL(totalCirculante)}</strong></td>
+  </tr>`;
+
+  let cIdxG = 1;
+  for (const grupoNome in circulante) {
+    const cats = circulante[grupoNome];
+    const temCats = Object.keys(cats).length > 0;
+    let subTotal = 0;
+    for (const c in cats) subTotal += cats[c];
+
+    rows += `<tr class="bal-row-grupo">
+      <td>3.${cIdxG}</td><td>${esc(grupoNome)}</td><td>R$</td>
+      <td>${temCats ? formatBRL(subTotal) : '<span class="bal-val-vazio">—</span>'}</td>
+    </tr>`;
+
+    if (temCats) {
+      let cIdx = 1;
+      for (const catNome in cats) {
+        rows += `<tr class="bal-row-cat">
+          <td>3.${cIdxG}.${cIdx}</td><td>${esc(catNome)}</td><td>R$</td><td>${formatBRL(cats[catNome])}</td>
+        </tr>`;
+        cIdx++;
+      }
+    }
+    cIdxG++;
+  }
+
+  rows += `<tr class="bal-row-saldo">
+    <td>4.</td><td><strong>Saldo Disponível</strong></td><td>R$</td>
+    <td><strong>${formatBRL(saldo)}</strong></td>
+  </tr>`;
+
+  container.innerHTML = `
+    <table class="balancete-table">
+      <thead>
+        <tr>
+          <th style="width:100px;">Código</th>
+          <th>Plano de Contas</th>
+          <th style="width:50px;">Valor</th>
+          <th style="width:140px;">Valor</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 // ═══════════════════════════════════════════
@@ -892,30 +880,24 @@ function exportarGrupoExcel() {
   const data = [];
   const totalCols = 7 + (eventos.length * 4);
 
-  // Linha 0: Título
   const tituloRow = [grupoAtual.nome + ' — ' + (crAtual ? crAtual.nome : '')];
   for (let i = 1; i < totalCols; i++) tituloRow.push('');
   data.push(tituloRow);
 
-  // Linha 1: Data exportação
   const dataRow = ['Exportado em: ' + new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR')];
   for (let i = 1; i < totalCols; i++) dataRow.push('');
   data.push(dataRow);
 
-  // Linha 2: vazia
   data.push(Array(totalCols).fill(''));
 
-  // Linha 3: Header superior
   const h1 = ['', '', '', 'ORCAMENTO', '', '', ''];
   eventos.forEach(ev => { h1.push(ev.nome, '', '', ''); });
   data.push(h1);
 
-  // Linha 4: Sub-header
   const h2 = ['Categoria', 'Descrição', 'Fornecedor', 'Vlr Unitário', 'Qtd', 'Vlr Total', 'Nr Pedido'];
   eventos.forEach(() => { h2.push('Valor', 'Nr da NF', 'AS', 'Pago?'); });
   data.push(h2);
 
-  // Dados
   let totalOrcamento = 0;
   const evTotais = {};
   eventos.forEach(ev => { evTotais[ev.id] = 0; });
@@ -944,25 +926,21 @@ function exportarGrupoExcel() {
     data.push(row);
   });
 
-  // Linha Total
   const totalRow = ['', '', '', '', 'TOTAL', totalOrcamento, ''];
   eventos.forEach(ev => { totalRow.push(evTotais[ev.id], '', '', ''); });
   data.push(totalRow);
 
-  // Criar workbook
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
 
-  // Larguras
   const colWidths = [{ wch: 20 }, { wch: 22 }, { wch: 18 }, { wch: 14 }, { wch: 8 }, { wch: 14 }, { wch: 14 }];
   eventos.forEach(() => { colWidths.push({ wch: 14 }, { wch: 14 }, { wch: 6 }, { wch: 8 }); });
   ws['!cols'] = colWidths;
 
-  // Merges
   const merges = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } },  // título
-    { s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } },  // data
-    { s: { r: 3, c: 3 }, e: { r: 3, c: 6 } }                // "ORCAMENTO"
+    { s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } },
+    { s: { r: 3, c: 3 }, e: { r: 3, c: 6 } }
   ];
   eventos.forEach((_, i) => {
     const sc = 7 + (i * 4);
@@ -970,35 +948,27 @@ function exportarGrupoExcel() {
   });
   ws['!merges'] = merges;
 
-  // ESTILOS
-  // Título (linha 0)
   applyStylesToRange(ws, 0, 0, 0, totalCols - 1,
     stl('0F766E', FONT_TITLE, BORDER_THIN, null, ALIGN_CENTER));
 
-  // Data (linha 1)
   applyStylesToRange(ws, 1, 0, 1, totalCols - 1,
     stl('F0FDFA', { color: { rgb: '6B7280' }, sz: 9, italic: true }, BORDER_THIN, null, ALIGN_CENTER));
 
-  // Header superior (linha 3) - orçamento
   applyStylesToRange(ws, 3, 0, 3, 6,
     stl('0F766E', FONT_HEADER, BORDER_THIN, null, ALIGN_CENTER));
 
-  // Header superior (linha 3) - eventos
   eventos.forEach((_, i) => {
     const sc = 7 + (i * 4);
     applyStylesToRange(ws, 3, sc, 3, sc + 3,
       stl('1D4ED8', FONT_HEADER, BORDER_THIN, null, ALIGN_CENTER));
   });
 
-  // Sub-header (linha 4)
   applyStylesToRange(ws, 4, 0, 4, totalCols - 1,
     stl('F9FAFB', FONT_SUB, BORDER_BOTTOM_THICK, null, ALIGN_CENTER));
 
-  // Dados (linhas 5 até 5+itens.length-1)
   const dataStart = 5;
   const dataEnd = dataStart + itens.length - 1;
   for (let r = dataStart; r <= dataEnd; r++) {
-    // Colunas orçamento
     for (let c = 0; c < 7; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (!ws[addr]) ws[addr] = { v: '', t: 's' };
@@ -1011,7 +981,6 @@ function exportarGrupoExcel() {
         isNum ? ALIGN_RIGHT : ALIGN_LEFT
       );
     }
-    // Colunas eventos
     eventos.forEach((_, i) => {
       const sc = 7 + (i * 4);
       for (let c = sc; c < sc + 4; c++) {
@@ -1029,11 +998,9 @@ function exportarGrupoExcel() {
     });
   }
 
-  // Linha Total
   const totalRowIdx = dataEnd + 1;
   applyStylesToRange(ws, totalRowIdx, 0, totalRowIdx, totalCols - 1,
     stl('E5E7EB', FONT_TOTAL, BORDER_BOTTOM_THICK, null, ALIGN_CENTER));
-  // Valor total em formato BRL
   const ftAddr = XLSX.utils.encode_cell({ r: totalRowIdx, c: 5 });
   if (ws[ftAddr]) ws[ftAddr].s = stl('E5E7EB', FONT_TOTAL, BORDER_BOTTOM_THICK, BRL_FMT, ALIGN_RIGHT);
   eventos.forEach((ev, i) => {
@@ -1057,19 +1024,15 @@ function exportarBalanceteExcel() {
   const data = [];
   let row = 0;
 
-  // Linha 0: Título
   data.push(['Balancete — ' + crAtual.nome, '', '', '']);
   row++;
 
-  // Linha 1: Data
   data.push(['Exportado em: ' + new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'), '', '', '']);
   row++;
 
-  // Linha 2: vazia
   data.push(['', '', '', '']);
   row++;
 
-  // ═══ SEÇÃO 1: ENTRADAS ═══
   data.push(['1. ENTRADAS', '', '', '']);
   row++;
   data.push(['', '1.1 Orcamento', '', orc]);
@@ -1077,11 +1040,9 @@ function exportarBalanceteExcel() {
   data.push(['', 'Total Entradas', '', orc]);
   row++;
 
-  // Linha vazia
   data.push(['', '', '', '']);
   row++;
 
-  // Coletar passivos e circulante
   const passivos = {};
   const circulante = {};
   let totalPassivos = 0;
@@ -1107,7 +1068,6 @@ function exportarBalanceteExcel() {
     });
   });
 
-  // ═══ SEÇÃO 2: PASSIVOS ═══
   const passivosStart = row;
   data.push(['2. PASSIVOS (Despesas Pagas)', '', '', '']);
   row++;
@@ -1136,11 +1096,9 @@ function exportarBalanceteExcel() {
   data.push(['', 'Total Passivos', '', totalPassivos]);
   row++;
 
-  // Linha vazia
   data.push(['', '', '', '']);
   row++;
 
-  // ═══ SEÇÃO 3: PASSIVOS CIRCULANTE ═══
   const circulanteStart = row;
   data.push(['3. PASSIVOS CIRCULANTE (Despesas Pendentes)', '', '', '']);
   row++;
@@ -1169,11 +1127,9 @@ function exportarBalanceteExcel() {
   data.push(['', 'Total Passivos Circulante', '', totalCirculante]);
   row++;
 
-  // Linha vazia
   data.push(['', '', '', '']);
   row++;
 
-  // ═══ RESUMO ═══
   const resumoStart = row;
   data.push(['RESUMO', '', '', '']);
   row++;
@@ -1187,7 +1143,6 @@ function exportarBalanceteExcel() {
   data.push(['', 'SALDO DISPONÍVEL', '', saldo]);
   row++;
 
-  // Criar workbook
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
 
@@ -1197,23 +1152,18 @@ function exportarBalanceteExcel() {
     { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
   ];
 
-  // Estilos
-  // Título
   applyStylesToRange(ws, 0, 0, 0, 3,
     stl('0F766E', FONT_TITLE, BORDER_THIN, null, ALIGN_CENTER));
 
-  // Data
   applyStylesToRange(ws, 1, 0, 1, 3,
     stl('F0FDFA', { color: { rgb: '6B7280' }, sz: 9, italic: true }, BORDER_THIN, null, ALIGN_CENTER));
 
-  // Aplicar estilos em todas as linhas de dados
   for (let r = 3; r < data.length; r++) {
     const rowData = data[r];
     for (let c = 0; c < 4; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (!ws[addr]) ws[addr] = { v: '', t: 's' };
 
-      // Títulos de seção
       if (rowData[0] && (rowData[0].startsWith('1.') || rowData[0].startsWith('2.') || rowData[0].startsWith('3.') || rowData[0] === 'RESUMO')) {
         let bgColor = 'F9FAFB';
         let fontColor = '111827';
@@ -1223,7 +1173,6 @@ function exportarBalanceteExcel() {
         else if (rowData[0] === 'RESUMO') { bgColor = '0F766E'; fontColor = 'FFFFFF'; }
         ws[addr].s = stl(bgColor, { bold: true, color: { rgb: fontColor }, sz: 11 }, BORDER_THIN, null, ALIGN_LEFT);
       }
-      // Subtotais e totais
       else if (c === 2 && (rowData[2] === 'Subtotal')) {
         ws[addr].s = stl('F3F4F6', FONT_BOLD, BORDER_THIN, null, ALIGN_LEFT);
         const valAddr = XLSX.utils.encode_cell({ r, c: 3 });
@@ -1239,15 +1188,12 @@ function exportarBalanceteExcel() {
         const valAddr = XLSX.utils.encode_cell({ r, c: 3 });
         if (ws[valAddr]) ws[valAddr].s = stl('0F766E', { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 }, BORDER_THIN, BRL_FMT, ALIGN_RIGHT);
       }
-      // Valores normais
       else if (c === 3 && typeof rowData[3] === 'number') {
         ws[addr].s = stl(null, FONT_NORMAL, BORDER_THIN, BRL_FMT, ALIGN_RIGHT);
       }
-      // Grupo header
       else if (c === 1 && rowData[1] && (rowData[1].match(/^\d\.\d\s/) || rowData[1] === '1.1 Orcamento')) {
         ws[addr].s = stl('F0FDFA', { bold: true, color: { rgb: '0F766E' }, sz: 10 }, BORDER_THIN, null, ALIGN_LEFT);
       }
-      // Normal
       else {
         ws[addr].s = stl(null, FONT_NORMAL, BORDER_THIN, null, ALIGN_LEFT);
       }
