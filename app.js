@@ -12,6 +12,42 @@ function gerarId() {
 }
 
 // ═══════════════════════════════════════════
+// TOAST SYSTEM (#1)
+// ═══════════════════════════════════════════
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.success}</span>
+    <span class="toast-msg">${msg}</span>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    <div class="toast-progress"></div>`;
+  container.appendChild(toast);
+  setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3600);
+}
+
+// ═══════════════════════════════════════════
+// MODAL DE CONFIRMAÇÃO CUSTOMIZADO (#5)
+// ═══════════════════════════════════════════
+let confirmCallback = null;
+
+function mostrarConfirmacao(titulo, msg, btnTexto, callback, icon = '') {
+  document.getElementById('modal-confirmar-icon').textContent = icon;
+  document.getElementById('modal-confirmar-titulo').textContent = titulo;
+  document.getElementById('modal-confirmar-msg').textContent = msg;
+  document.getElementById('modal-confirmar-btn').textContent = btnTexto;
+  confirmCallback = callback;
+  abrirModal('modal-confirmar');
+}
+
+function executarConfirmacao() {
+  fecharModal('modal-confirmar');
+  if (confirmCallback) { confirmCallback(); confirmCallback = null; }
+}
+
+// ═══════════════════════════════════════════
 // VARIÁVEIS GLOBAIS
 // ═══════════════════════════════════════════
 let crAtual = null;
@@ -20,6 +56,7 @@ let telaAnterior = null;
 let rowParaRemover = null;
 let crIdModalCat = null;
 let ctxTarget = null;
+let editarNomeCallback = null;
 
 // ═══════════════════════════════════════════
 // NAVEGAÇÃO
@@ -72,7 +109,24 @@ function abrirModal(id) { document.getElementById(id).classList.add('open'); }
 function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // ═══════════════════════════════════════════
-// MENU 3 PONTINHOS (⋮)
+// EDITAR NOME (CR / Grupo / Evento) (#4)
+// ═══════════════════════════════════════════
+function abrirEditarNome(titulo, valorAtual, callback) {
+  document.getElementById('modal-editar-nome-titulo').textContent = titulo;
+  document.getElementById('input-editar-nome').value = valorAtual;
+  editarNomeCallback = callback;
+  abrirModal('modal-editar-nome');
+}
+
+function salvarEdicaoNome() {
+  const novoNome = document.getElementById('input-editar-nome').value.trim();
+  if (!novoNome) { showToast('Informe um nome.', 'warning'); return; }
+  fecharModal('modal-editar-nome');
+  if (editarNomeCallback) { editarNomeCallback(novoNome); editarNomeCallback = null; }
+}
+
+// ═══════════════════════════════════════════
+// MENU 3 PONTINHOS (⋮) — CLEAN (#4)
 // ═══════════════════════════════════════════
 function abrirCtxMenu(e, tipo, id) {
   e.stopPropagation();
@@ -80,27 +134,49 @@ function abrirCtxMenu(e, tipo, id) {
   const menu = document.getElementById('ctx-menu');
   ctxTarget = { tipo, id };
 
-  const btnEditar = document.getElementById('ctx-editar');
-  const btnDeletar = document.getElementById('ctx-deletar');
+  let menuHtml = '';
 
   if (tipo === 'cr') {
-    btnEditar.style.display = 'block';
-    btnEditar.textContent = '✏️ Editar Orçamento';
-    btnEditar.onclick = () => { fecharCtxMenu(); abrirEditarOrcamento(id); };
-    btnDeletar.textContent = '🗑️ Deletar CR';
-    btnDeletar.onclick = () => { fecharCtxMenu(); deletarCR(id); };
+    const cr = DB.getCRs().find(c => c.id === id);
+    menuHtml = `
+      <div class="ctx-menu-item" onclick="fecharCtxMenu(); abrirEditarNome('Editar Nome do CR', '${esc(cr?.nome||'')}', function(n){ editarNomeCR('${id}',n); })">
+        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar Nome
+      </div>
+      <div class="ctx-menu-item" onclick="fecharCtxMenu(); abrirEditarOrcamento('${id}')">
+        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Editar Orcamento
+      </div>
+      <div class="ctx-menu-item ctx-danger" onclick="fecharCtxMenu(); deletarCR('${id}')">
+        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Excluir CR
+      </div>`;
   } else if (tipo === 'grupo') {
-    btnEditar.style.display = 'none';
-    btnDeletar.textContent = '🗑️ Deletar Grupo';
-    btnDeletar.onclick = () => { fecharCtxMenu(); deletarGrupo(id); };
+    const g = DB.getGrupos(crAtual.id).find(g => g.id === id);
+    menuHtml = `
+      <div class="ctx-menu-item" onclick="fecharCtxMenu(); abrirEditarNome('Editar Nome do Grupo', '${esc(g?.nome||'')}', function(n){ editarNomeGrupo('${id}',n); })">
+        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar Nome
+      </div>
+      <div class="ctx-menu-item ctx-danger" onclick="fecharCtxMenu(); deletarGrupo('${id}')">
+        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Excluir Grupo
+      </div>`;
   } else if (tipo === 'evento') {
-    btnEditar.style.display = 'none';
-    btnDeletar.textContent = '🗑️ Deletar Evento';
-    btnDeletar.onclick = () => { fecharCtxMenu(); deletarEvento(id); };
+    const ev = DB.getEventos(grupoAtual.id).find(e => e.id === id);
+    menuHtml = `
+      <div class="ctx-menu-item" onclick="fecharCtxMenu(); abrirEditarNome('Editar Nome do Evento', '${esc(ev?.nome||'')}', function(n){ editarNomeEvento('${id}',n); })">
+        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar Nome
+      </div>
+      <div class="ctx-menu-item ctx-danger" onclick="fecharCtxMenu(); deletarEvento('${id}')">
+        <svg class="ctx-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Excluir Evento
+      </div>`;
   }
 
+  menu.innerHTML = menuHtml;
   menu.style.display = 'block';
-  // Posicionar sem sair da tela
   const x = Math.min(e.pageX, window.innerWidth - 200);
   const y = Math.min(e.pageY, window.innerHeight - 100);
   menu.style.left = x + 'px';
@@ -113,6 +189,31 @@ function fecharCtxMenu() {
 }
 
 document.addEventListener('click', fecharCtxMenu);
+
+// Editar nomes
+function editarNomeCR(crId, novoNome) {
+  const crs = DB.getCRs();
+  const cr = crs.find(c => c.id === crId);
+  if (cr) { cr.nome = novoNome; DB.saveCRs(crs); if (crAtual && crAtual.id === crId) crAtual.nome = novoNome; }
+  showToast('Nome do CR atualizado!');
+  renderCRs();
+}
+
+function editarNomeGrupo(grupoId, novoNome) {
+  const grupos = DB.getGrupos(crAtual.id);
+  const g = grupos.find(g => g.id === grupoId);
+  if (g) { g.nome = novoNome; DB.saveGrupos(crAtual.id, grupos); if (grupoAtual && grupoAtual.id === grupoId) grupoAtual.nome = novoNome; }
+  showToast('Nome do grupo atualizado!');
+  renderGrupos();
+}
+
+function editarNomeEvento(eventoId, novoNome) {
+  const eventos = DB.getEventos(grupoAtual.id);
+  const ev = eventos.find(e => e.id === eventoId);
+  if (ev) { ev.nome = novoNome; DB.saveEventos(grupoAtual.id, eventos); }
+  showToast('Nome do evento atualizado!');
+  renderGrupoDetalhe();
+}
 
 // ═══════════════════════════════════════════
 // CONFIGURAÇÕES
@@ -175,7 +276,7 @@ function renderCRs() {
 function salvarCR() {
   const nome = document.getElementById('input-cr').value.trim();
   const orc = parseFloat(document.getElementById('input-cr-orcamento').value) || 0;
-  if (!nome) { alert('Informe o nome do CR.'); return; }
+  if (!nome) { showToast('Informe o nome do CR.', 'warning'); return; }
   const crs = DB.getCRs();
   const novo = { id: gerarId(), nome };
   crs.push(novo);
@@ -184,13 +285,16 @@ function salvarCR() {
   document.getElementById('input-cr').value = '';
   document.getElementById('input-cr-orcamento').value = '';
   fecharModal('modal-cr');
+  showToast('CR criado com sucesso!');
   renderCRs();
 }
 
 function deletarCR(crId) {
-  if (!confirm('Deletar este CR e todos os seus dados?')) return;
-  DB.saveCRs(DB.getCRs().filter(c => c.id !== crId));
-  renderCRs();
+  mostrarConfirmacao('Excluir CR', 'Deseja realmente excluir este CR e todos os seus dados? Esta ação não pode ser desfeita.', 'Excluir', () => {
+    DB.saveCRs(DB.getCRs().filter(c => c.id !== crId));
+    showToast('CR excluído.', 'info');
+    renderCRs();
+  });
 }
 
 function abrirEditarOrcamento(crId) {
@@ -203,6 +307,7 @@ function salvarOrcamento() {
   const valor = parseFloat(document.getElementById('input-orcamento').value) || 0;
   DB.saveOrcamento(crAtual.id, valor);
   fecharModal('modal-orcamento');
+  showToast('Orcamento atualizado!');
   renderCRs();
 }
 
@@ -245,47 +350,52 @@ function renderGrupos() {
 
 function salvarGrupo() {
   const nome = document.getElementById('input-grupo').value.trim();
-  if (!nome) { alert('Informe o nome do grupo.'); return; }
+  if (!nome) { showToast('Informe o nome do grupo.', 'warning'); return; }
   const grupos = DB.getGrupos(crAtual.id);
   grupos.push({ id: gerarId(), nome });
   DB.saveGrupos(crAtual.id, grupos);
   document.getElementById('input-grupo').value = '';
   fecharModal('modal-grupo');
+  showToast('Grupo criado com sucesso!');
   renderGrupos();
 }
 
 function deletarGrupo(grupoId) {
-  if (!confirm('Deletar este grupo e todos os seus dados?')) return;
-  DB.saveGrupos(crAtual.id, DB.getGrupos(crAtual.id).filter(g => g.id !== grupoId));
-  renderGrupos();
+  mostrarConfirmacao('Excluir Grupo', 'Deseja realmente excluir este grupo e todos os seus dados?', 'Excluir', () => {
+    DB.saveGrupos(crAtual.id, DB.getGrupos(crAtual.id).filter(g => g.id !== grupoId));
+    showToast('Grupo excluído.', 'info');
+    renderGrupos();
+  });
 }
 
 // ═══════════════════════════════════════════
-// EVENTOS (antigo "Reuniões")
+// EVENTOS
 // ═══════════════════════════════════════════
 function salvarEvento() {
   const nome = document.getElementById('input-evento').value.trim();
-  if (!nome) { alert('Informe o nome do evento.'); return; }
+  if (!nome) { showToast('Informe o nome do evento.', 'warning'); return; }
   const eventos = DB.getEventos(grupoAtual.id);
   eventos.push({ id: gerarId(), nome });
   DB.saveEventos(grupoAtual.id, eventos);
   document.getElementById('input-evento').value = '';
   fecharModal('modal-evento');
+  showToast('Evento criado com sucesso!');
   renderGrupoDetalhe();
 }
 
 function deletarEvento(eventoId) {
-  if (!confirm('Deletar este evento e seus dados?')) return;
-  DB.saveEventos(grupoAtual.id, DB.getEventos(grupoAtual.id).filter(e => e.id !== eventoId));
-  // Limpar dados do evento nos itens
-  const itens = DB.getItensGrupo(grupoAtual.id);
-  itens.forEach(item => { if (item.eventos) delete item.eventos[eventoId]; });
-  DB.saveItensGrupo(grupoAtual.id, itens);
-  renderGrupoDetalhe();
+  mostrarConfirmacao('Excluir Evento', 'Deseja realmente excluir este evento e seus dados?', 'Excluir', () => {
+    DB.saveEventos(grupoAtual.id, DB.getEventos(grupoAtual.id).filter(e => e.id !== eventoId));
+    const itens = DB.getItensGrupo(grupoAtual.id);
+    itens.forEach(item => { if (item.eventos) delete item.eventos[eventoId]; });
+    DB.saveItensGrupo(grupoAtual.id, itens);
+    showToast('Evento excluído.', 'info');
+    renderGrupoDetalhe();
+  });
 }
 
 // ═══════════════════════════════════════════
-// GRUPO DETALHE — TABELA ESTILO PLANILHA
+// GRUPO DETALHE — TABELA COM POPOVER (#2)
 // ═══════════════════════════════════════════
 function buildCategoriasOptions(selected) {
   const cats = crAtual ? DB.getCategoriasDisponiveis(crAtual.id) : DB.getCategoriasPadrao().filter(c=>c.ativo);
@@ -299,11 +409,9 @@ function renderGrupoDetalhe() {
   const itens = DB.getItensGrupo(grupoAtual.id);
   const wrapper = document.getElementById('tabela-grupo-wrapper');
 
-  const numEventos = eventos.length;
-  const colspanOrc = 7; // Categoria, Descrição, Fornecedor, Vlr Unit, Qtd, Vlr Total, Nr Pedido
+  const colspanOrc = 7;
 
-  // ═══ HEADER TOP ═══
-  let headerTop = `<th colspan="${colspanOrc}" class="th-orc-header">Orçamento</th>`;
+  let headerTop = `<th colspan="${colspanOrc}" class="th-orc-header">Orcamento</th>`;
   eventos.forEach(ev => {
     headerTop += `<th colspan="4" class="th-evento-header">
       ${esc(ev.nome)}
@@ -312,7 +420,6 @@ function renderGrupoDetalhe() {
   });
   headerTop += '<th class="th-acao-header"></th>';
 
-  // ═══ HEADER SUB ═══
   let headerSub = `
     <th>Categoria</th>
     <th>Descrição</th>
@@ -326,9 +433,12 @@ function renderGrupoDetalhe() {
   });
   headerSub += '<th></th>';
 
-  // ═══ BODY ═══
   let bodyHtml = '';
   itens.forEach((item, idx) => {
+    // Nr Pedido com popover
+    const pedNum = esc(item.nrPedido||'');
+    const pedLink = esc(item.nrPedidoLink||'');
+
     let cells = `
       <td><select data-f="categoria" data-i="${idx}">${buildCategoriasOptions(item.categoria||'')}</select></td>
       <td><input type="text" data-f="descricao" data-i="${idx}" value="${esc(item.descricao||'')}" placeholder="Descrição"></td>
@@ -336,22 +446,56 @@ function renderGrupoDetalhe() {
       <td><input type="number" data-f="vlrUnitario" data-i="${idx}" value="${item.vlrUnitario||''}" placeholder="0,00" oninput="calcLinhaGrupo(${idx})"></td>
       <td><input type="number" data-f="qtd" data-i="${idx}" value="${item.qtd||''}" placeholder="0" oninput="calcLinhaGrupo(${idx})"></td>
       <td><input type="number" data-f="vlrTotal" data-i="${idx}" value="${item.vlrTotal||''}" placeholder="0,00" oninput="updateResumo()"></td>
-      <td><input type="text" data-f="nrPedido" data-i="${idx}" value="${esc(item.nrPedido||'')}" placeholder="Nr Pedido"></td>`;
+      <td>
+        <div class="popover-trigger" onclick="togglePopover(event, 'pop-ped-${idx}')">
+          <input type="text" data-f="nrPedido" data-i="${idx}" value="${pedNum}" placeholder="Nr Pedido" readonly style="cursor:pointer">
+          <span class="popover-link-icon">${pedLink ? '🔗' : '+'}</span>
+        </div>
+        <div class="popover-panel" id="pop-ped-${idx}">
+          <label>Numero</label>
+          <input type="text" id="pop-ped-num-${idx}" value="${pedNum}" placeholder="Ex: 12345">
+          <label>Link</label>
+          <input type="text" id="pop-ped-link-${idx}" value="${pedLink}" placeholder="https://...">
+          <div class="popover-actions">
+            ${pedLink ? `<button class="btn-secondary" onclick="window.open(document.getElementById('pop-ped-link-${idx}').value,'_blank')">Abrir</button>` : ''}
+            <button onclick="salvarPopoverPedido(${idx})">OK</button>
+          </div>
+        </div>
+      </td>`;
 
     eventos.forEach(ev => {
       const d = (item.eventos && item.eventos[ev.id]) || {};
+      const nfNum = esc(d.nrNF||'');
+      const nfLink = esc(d.nrNFLink||'');
+
       cells += `
         <td class="td-ev"><input type="number" data-ev="${ev.id}" data-i="${idx}" data-ef="valor" value="${d.valor||''}" placeholder="0,00" oninput="updateResumo()"></td>
-        <td class="td-ev"><input type="text" data-ev="${ev.id}" data-i="${idx}" data-ef="nrNF" value="${esc(d.nrNF||'')}" placeholder="NF"></td>
+        <td class="td-ev">
+          <div class="popover-trigger" onclick="togglePopover(event, 'pop-nf-${idx}-${ev.id}')">
+            <input type="text" data-ev="${ev.id}" data-i="${idx}" data-ef="nrNF" value="${nfNum}" placeholder="NF" readonly style="cursor:pointer">
+            <span class="popover-link-icon">${nfLink ? '🔗' : '+'}</span>
+          </div>
+          <div class="popover-panel" id="pop-nf-${idx}-${ev.id}">
+            <label>Numero da NF</label>
+            <input type="text" id="pop-nf-num-${idx}-${ev.id}" value="${nfNum}" placeholder="Ex: NF-001">
+            <label>Link</label>
+            <input type="text" id="pop-nf-link-${idx}-${ev.id}" value="${nfLink}" placeholder="https://...">
+            <div class="popover-actions">
+              ${nfLink ? `<button class="btn-secondary" onclick="window.open(document.getElementById('pop-nf-link-${idx}-${ev.id}').value,'_blank')">Abrir</button>` : ''}
+              <button onclick="salvarPopoverNF(${idx},'${ev.id}')">OK</button>
+            </div>
+          </div>
+        </td>
         <td class="td-ev check-cell"><input type="checkbox" data-ev="${ev.id}" data-i="${idx}" data-ef="as" ${d.as?'checked':''}></td>
         <td class="td-ev check-cell"><input type="checkbox" data-ev="${ev.id}" data-i="${idx}" data-ef="pago" ${d.pago?'checked':''} onchange="updateResumo()"></td>`;
     });
 
-    cells += `<td><button class="btn-del-row" onclick="pedirConfirmacaoRemover(this)">🗑️</button></td>`;
+    cells += `<td><button class="btn-del-row" onclick="pedirConfirmacaoRemover(this)" title="Remover linha">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+    </button></td>`;
     bodyHtml += `<tr data-row="${idx}">${cells}</tr>`;
   });
 
-  // ═══ FOOTER ═══
   let footCells = `<td colspan="5"><strong>Total</strong></td><td id="ft-vlrTotal">R$ 0,00</td><td></td>`;
   eventos.forEach(ev => {
     footCells += `<td id="ft-ev-${ev.id}" class="ft-ev-val">R$ 0,00</td><td></td><td></td><td></td>`;
@@ -369,6 +513,36 @@ function renderGrupoDetalhe() {
     </table>`;
 
   updateResumo();
+}
+
+// Popover toggle
+function togglePopover(e, popId) {
+  e.stopPropagation();
+  document.querySelectorAll('.popover-panel.open').forEach(p => {
+    if (p.id !== popId) p.classList.remove('open');
+  });
+  document.getElementById(popId).classList.toggle('open');
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.popover-panel.open').forEach(p => p.classList.remove('open'));
+});
+
+function salvarPopoverPedido(idx) {
+  const num = document.getElementById(`pop-ped-num-${idx}`).value;
+  const row = document.querySelector(`tr[data-row="${idx}"]`);
+  if (row) row.querySelector('[data-f="nrPedido"]').value = num;
+  document.getElementById(`pop-ped-${idx}`).classList.remove('open');
+}
+
+function salvarPopoverNF(idx, evId) {
+  const num = document.getElementById(`pop-nf-num-${idx}-${evId}`).value;
+  const row = document.querySelector(`tr[data-row="${idx}"]`);
+  if (row) {
+    const input = row.querySelector(`[data-ev="${evId}"][data-ef="nrNF"]`);
+    if (input) input.value = num;
+  }
+  document.getElementById(`pop-nf-${idx}-${evId}`).classList.remove('open');
 }
 
 function calcLinhaGrupo(idx) {
@@ -402,7 +576,6 @@ function updateResumo() {
   document.getElementById('resumo-pago').textContent = formatBRL(totalPago);
   document.getElementById('resumo-pendente').textContent = formatBRL(totalGasto - totalPago);
 
-  // Footer por evento
   const ftOrc = document.getElementById('ft-vlrTotal');
   if (ftOrc) ftOrc.textContent = formatBRL(totalOrc);
   eventos.forEach(ev => {
@@ -412,11 +585,10 @@ function updateResumo() {
 }
 
 function addItemGrupo() {
-  // Salvar estado atual, adicionar item vazio, re-renderizar
   const itens = coletarItensDoDOM();
   itens.push({
     id: gerarId(), categoria: '', descricao: '', fornecedor: '',
-    vlrUnitario: '', qtd: '', vlrTotal: '', nrPedido: '', eventos: {}
+    vlrUnitario: '', qtd: '', vlrTotal: '', nrPedido: '', nrPedidoLink: '', eventos: {}
   });
   DB.saveItensGrupo(grupoAtual.id, itens);
   renderGrupoDetalhe();
@@ -427,7 +599,7 @@ function coletarItensDoDOM() {
   const rows = document.querySelectorAll('#tbody-grupo tr');
   const itens = [];
 
-  rows.forEach(row => {
+  rows.forEach((row, idx) => {
     const item = {
       id: gerarId(),
       categoria:   row.querySelector('[data-f="categoria"]')?.value || '',
@@ -437,6 +609,7 @@ function coletarItensDoDOM() {
       qtd:         row.querySelector('[data-f="qtd"]')?.value || '',
       vlrTotal:    row.querySelector('[data-f="vlrTotal"]')?.value || '',
       nrPedido:    row.querySelector('[data-f="nrPedido"]')?.value || '',
+      nrPedidoLink: document.getElementById(`pop-ped-link-${idx}`)?.value || '',
       eventos: {}
     };
 
@@ -444,6 +617,7 @@ function coletarItensDoDOM() {
       item.eventos[ev.id] = {
         valor: row.querySelector(`[data-ev="${ev.id}"][data-ef="valor"]`)?.value || '',
         nrNF:  row.querySelector(`[data-ev="${ev.id}"][data-ef="nrNF"]`)?.value || '',
+        nrNFLink: document.getElementById(`pop-nf-link-${idx}-${ev.id}`)?.value || '',
         as:    row.querySelector(`[data-ev="${ev.id}"][data-ef="as"]`)?.checked || false,
         pago:  row.querySelector(`[data-ev="${ev.id}"][data-ef="pago"]`)?.checked || false,
       };
@@ -458,29 +632,27 @@ function salvarGrupoItens() {
   const itens = coletarItensDoDOM();
   const eventos = DB.getEventos(grupoAtual.id);
 
-  // Validação de campos obrigatórios
   for (let i = 0; i < itens.length; i++) {
     const it = itens[i];
-    if (!it.categoria)        { alert(`Linha ${i+1}: Categoria é obrigatória.`); return; }
-    if (!it.descricao.trim()) { alert(`Linha ${i+1}: Descrição é obrigatória.`); return; }
-    if (!it.fornecedor.trim()){ alert(`Linha ${i+1}: Fornecedor é obrigatório.`); return; }
-    if (!it.nrPedido.trim())  { alert(`Linha ${i+1}: Nr do Pedido é obrigatório.`); return; }
+    if (!it.categoria)        { showToast(`Linha ${i+1}: Categoria e obrigatória.`, 'error'); return; }
+    if (!it.descricao.trim()) { showToast(`Linha ${i+1}: Descrição e obrigatória.`, 'error'); return; }
+    if (!it.fornecedor.trim()){ showToast(`Linha ${i+1}: Fornecedor e obrigatório.`, 'error'); return; }
+    if (!it.nrPedido.trim())  { showToast(`Linha ${i+1}: Nr do Pedido e obrigatório.`, 'error'); return; }
 
-    // Precisa de Valor + NF em pelo menos 1 evento
     if (eventos.length > 0) {
       const temEvento = eventos.some(ev => {
         const d = it.eventos[ev.id];
         return d && (parseFloat(d.valor)||0) > 0 && (d.nrNF||'').trim();
       });
       if (!temEvento) {
-        alert(`Linha ${i+1}: Preencha Valor e NF em pelo menos 1 evento.`);
+        showToast(`Linha ${i+1}: Preencha Valor e NF em pelo menos 1 evento.`, 'error');
         return;
       }
     }
   }
 
   DB.saveItensGrupo(grupoAtual.id, itens);
-  alert('✅ Salvo com sucesso!');
+  showToast('Dados salvos com sucesso!');
 }
 
 // ═══════════════════════════════════════════
@@ -488,22 +660,20 @@ function salvarGrupoItens() {
 // ═══════════════════════════════════════════
 function pedirConfirmacaoRemover(btn) {
   rowParaRemover = btn.closest('tr');
-  abrirModal('modal-confirmar-delete');
-}
-
-function confirmarRemoveRow() {
-  if (rowParaRemover) {
-    rowParaRemover.remove();
-    rowParaRemover = null;
-    const itens = coletarItensDoDOM();
-    DB.saveItensGrupo(grupoAtual.id, itens);
-    updateResumo();
-  }
-  fecharModal('modal-confirmar-delete');
+  mostrarConfirmacao('Remover Item', 'Deseja realmente remover este item da tabela?', 'Remover', () => {
+    if (rowParaRemover) {
+      rowParaRemover.remove();
+      rowParaRemover = null;
+      const itens = coletarItensDoDOM();
+      DB.saveItensGrupo(grupoAtual.id, itens);
+      updateResumo();
+      showToast('Item removido.', 'info');
+    }
+  });
 }
 
 // ═══════════════════════════════════════════
-// BALANCETE
+// BALANCETE CONTÁBIL (#6)
 // ═══════════════════════════════════════════
 function verBalancete() {
   telaAnterior = 'tela-grupos';
@@ -511,170 +681,582 @@ function verBalancete() {
   renderBalancete();
 }
 
+function getCatNome(catId) {
+  const padrao = DB.getCategoriasPadrao();
+  const found = padrao.find(c => c.id === catId);
+  if (found) return found.nome;
+  const crs = DB.getCRs();
+  for (const cr of crs) {
+    const extras = DB.getCategoriasExtrasCR(cr.id);
+    const f = extras.find(c => c.id === catId);
+    if (f) return f.nome;
+  }
+  return catId || 'Sem Categoria';
+}
+
 function renderBalancete() {
   document.getElementById('titulo-balancete').textContent = `Balancete — ${crAtual?crAtual.nome:''}`;
   const container = document.getElementById('conteudo-balancete');
   container.innerHTML = '';
   const grupos = DB.getGrupos(crAtual.id);
+  const orc = DB.getOrcamento(crAtual.id);
+
   if (!grupos.length) { container.innerHTML = '<p class="empty-msg">Nenhum grupo encontrado.</p>'; return; }
 
-  let totalCR = 0, pagoCR = 0;
+  // Coletar dados separados por pago / não pago, agrupados por grupo > categoria
+  const passivos = {};     // pago = true
+  const circulante = {};   // pago = false
+  let totalPassivos = 0;
+  let totalCirculante = 0;
+
   grupos.forEach(g => {
     const eventos = DB.getEventos(g.id);
     const itens = DB.getItensGrupo(g.id);
-    let totalG = 0, pagoG = 0;
 
     itens.forEach(item => {
+      const catNome = getCatNome(item.categoria);
       eventos.forEach(ev => {
         const d = item.eventos && item.eventos[ev.id];
         if (d) {
-          const v = parseFloat(d.valor)||0;
-          totalG += v;
-          if (d.pago) pagoG += v;
+          const v = parseFloat(d.valor) || 0;
+          if (v === 0) return;
+
+          const destino = d.pago ? passivos : circulante;
+          const totalRef = d.pago ? 'passivos' : 'circulante';
+
+          if (!destino[g.nome]) destino[g.nome] = {};
+          if (!destino[g.nome][catNome]) destino[g.nome][catNome] = 0;
+          destino[g.nome][catNome] += v;
+
+          if (totalRef === 'passivos') totalPassivos += v;
+          else totalCirculante += v;
         }
       });
     });
-
-    totalCR += totalG;
-    pagoCR += pagoG;
-
-    const bloco = document.createElement('div');
-    bloco.className = 'balancete-grupo';
-
-    let linhasEv = '';
-    eventos.forEach(ev => {
-      let evTotal = 0, evPago = 0;
-      itens.forEach(item => {
-        const d = item.eventos && item.eventos[ev.id];
-        if (d) {
-          const v = parseFloat(d.valor)||0;
-          evTotal += v;
-          if (d.pago) evPago += v;
-        }
-      });
-      linhasEv += `
-        <div class="balancete-reuniao">
-          <span>${esc(ev.nome)}</span>
-          <span>
-            Total: <strong>${formatBRL(evTotal)}</strong> |
-            Pago: <strong style="color:#0F766E">${formatBRL(evPago)}</strong> |
-            Pendente: <strong style="color:#F59E0B">${formatBRL(evTotal-evPago)}</strong>
-          </span>
-        </div>`;
-    });
-
-    bloco.innerHTML = `
-      <div class="balancete-grupo-header">${esc(g.nome)}</div>
-      ${linhasEv || '<div class="balancete-reuniao"><span>Nenhum evento</span></div>'}
-      <div class="balancete-total">
-        <span>Total do Grupo</span><span>${formatBRL(totalG)}</span>
-      </div>`;
-    container.appendChild(bloco);
   });
 
-  const orc = DB.getOrcamento(crAtual.id);
-  const saldo = orc - totalCR;
-  const resumo = document.createElement('div');
-  resumo.className = 'balancete-resumo';
-  resumo.innerHTML = `
-    <div class="bal-row"><span>Orçamento Total</span><span style="color:#0F766E">${formatBRL(orc)}</span></div>
-    <div class="bal-row"><span>Total Gasto</span><span style="color:#EF4444">${formatBRL(totalCR)}</span></div>
-    <div class="bal-row"><span>Total Pago</span><span style="color:#0F766E">${formatBRL(pagoCR)}</span></div>
-    <div class="bal-row bal-saldo"><span>Saldo</span><span style="color:${saldo>=0?'#0F766E':'#EF4444'}">${formatBRL(saldo)}</span></div>`;
-  container.appendChild(resumo);
+  let html = '';
+
+  // SEÇÃO 1: ENTRADAS
+  html += `
+    <div class="balancete-section bal-section-entradas">
+      <div class="balancete-section-title">1. ENTRADAS</div>
+      <div class="balancete-grupo">
+        <div class="balancete-cat-row" style="padding-left:16px;">
+          <span>1.1 Orcamento</span>
+          <strong style="color:#0F766E">${formatBRL(orc)}</strong>
+        </div>
+        <div class="balancete-total">
+          <span>Total Entradas</span><span style="color:#0F766E">${formatBRL(orc)}</span>
+        </div>
+      </div>
+    </div>`;
+
+  // SEÇÃO 2: PASSIVOS (Despesas Pagas)
+  html += `<div class="balancete-section bal-section-passivos">
+    <div class="balancete-section-title">2. PASSIVOS (Despesas Pagas)</div>`;
+  let pIdx = 1;
+  if (Object.keys(passivos).length === 0) {
+    html += '<div class="balancete-grupo"><div class="balancete-cat-row" style="padding-left:16px;"><span>Nenhuma despesa paga</span><span>R$ 0,00</span></div></div>';
+  } else {
+    for (const grupoNome in passivos) {
+      let subTotal = 0;
+      let catHtml = '';
+      let cIdx = 1;
+      for (const catNome in passivos[grupoNome]) {
+        const v = passivos[grupoNome][catNome];
+        subTotal += v;
+        catHtml += `<div class="balancete-cat-row"><span>2.${pIdx}.${cIdx} ${esc(catNome)}</span><strong>${formatBRL(v)}</strong></div>`;
+        cIdx++;
+      }
+      html += `
+        <div class="balancete-grupo">
+          <div class="balancete-grupo-header">2.${pIdx} ${esc(grupoNome)}</div>
+          ${catHtml}
+          <div class="balancete-total"><span>Subtotal</span><span>${formatBRL(subTotal)}</span></div>
+        </div>`;
+      pIdx++;
+    }
+  }
+  html += `
+    <div class="balancete-grupo">
+      <div class="balancete-total" style="border-top:none;font-weight:700;">
+        <span>Total Passivos</span><span style="color:#DC2626">${formatBRL(totalPassivos)}</span>
+      </div>
+    </div>
+  </div>`;
+
+  // SEÇÃO 3: PASSIVOS CIRCULANTE (Despesas Pendentes)
+  html += `<div class="balancete-section bal-section-circulante">
+    <div class="balancete-section-title">3. PASSIVOS CIRCULANTE (Despesas Pendentes)</div>`;
+  let cIdxG = 1;
+  if (Object.keys(circulante).length === 0) {
+    html += '<div class="balancete-grupo"><div class="balancete-cat-row" style="padding-left:16px;"><span>Nenhuma despesa pendente</span><span>R$ 0,00</span></div></div>';
+  } else {
+    for (const grupoNome in circulante) {
+      let subTotal = 0;
+      let catHtml = '';
+      let cIdx = 1;
+      for (const catNome in circulante[grupoNome]) {
+        const v = circulante[grupoNome][catNome];
+        subTotal += v;
+        catHtml += `<div class="balancete-cat-row"><span>3.${cIdxG}.${cIdx} ${esc(catNome)}</span><strong>${formatBRL(v)}</strong></div>`;
+        cIdx++;
+      }
+      html += `
+        <div class="balancete-grupo">
+          <div class="balancete-grupo-header">3.${cIdxG} ${esc(grupoNome)}</div>
+          ${catHtml}
+          <div class="balancete-total"><span>Subtotal</span><span>${formatBRL(subTotal)}</span></div>
+        </div>`;
+      cIdxG++;
+    }
+  }
+  html += `
+    <div class="balancete-grupo">
+      <div class="balancete-total" style="border-top:none;font-weight:700;">
+        <span>Total Passivos Circulante</span><span style="color:#F59E0B">${formatBRL(totalCirculante)}</span>
+      </div>
+    </div>
+  </div>`;
+
+  // RESUMO FINAL
+  const saldo = orc - totalPassivos - totalCirculante;
+  html += `
+    <div class="balancete-resumo">
+      <div class="bal-row"><span>Entradas</span><span style="color:#0F766E">${formatBRL(orc)}</span></div>
+      <div class="bal-row"><span>(-) Passivos</span><span style="color:#DC2626">${formatBRL(totalPassivos)}</span></div>
+      <div class="bal-row"><span>(-) Passivos Circulante</span><span style="color:#F59E0B">${formatBRL(totalCirculante)}</span></div>
+      <div class="bal-divider"></div>
+      <div class="bal-row bal-saldo"><span>SALDO DISPONÍVEL</span><span style="color:${saldo>=0?'#0F766E':'#EF4444'}">${formatBRL(saldo)}</span></div>
+    </div>`;
+
+  container.innerHTML = html;
 }
 
 // ═══════════════════════════════════════════
-// EXPORTAR EXCEL — GRUPO DETALHE
+// EXPORTAR EXCEL — ESTILOS HELPER (#7)
+// ═══════════════════════════════════════════
+function stl(fill, font, border, numFmt, alignment) {
+  const s = {};
+  if (fill) s.fill = { fgColor: { rgb: fill } };
+  if (font) s.font = font;
+  if (border) s.border = border;
+  if (numFmt) s.numFmt = numFmt;
+  if (alignment) s.alignment = alignment;
+  return s;
+}
+
+const BORDER_THIN = {
+  top: { style: 'thin', color: { rgb: 'D1D5DB' } },
+  bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
+  left: { style: 'thin', color: { rgb: 'D1D5DB' } },
+  right: { style: 'thin', color: { rgb: 'D1D5DB' } }
+};
+
+const BORDER_BOTTOM_THICK = {
+  ...BORDER_THIN,
+  bottom: { style: 'medium', color: { rgb: '111827' } }
+};
+
+const FONT_HEADER = { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 };
+const FONT_SUB = { bold: true, color: { rgb: '374151' }, sz: 10 };
+const FONT_NORMAL = { color: { rgb: '111827' }, sz: 10 };
+const FONT_BOLD = { bold: true, color: { rgb: '111827' }, sz: 10 };
+const FONT_TOTAL = { bold: true, color: { rgb: '111827' }, sz: 11 };
+const FONT_TITLE = { bold: true, color: { rgb: 'FFFFFF' }, sz: 13 };
+
+const ALIGN_CENTER = { horizontal: 'center', vertical: 'center' };
+const ALIGN_LEFT = { vertical: 'center' };
+const ALIGN_RIGHT = { horizontal: 'right', vertical: 'center' };
+
+const BRL_FMT = '#,##0.00';
+
+function applyStylesToRange(ws, startRow, startCol, endRow, endCol, style) {
+  for (let r = startRow; r <= endRow; r++) {
+    for (let c = startCol; c <= endCol; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (!ws[addr]) ws[addr] = { v: '', t: 's' };
+      ws[addr].s = style;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// EXPORTAR EXCEL — GRUPO DETALHE (#7)
 // ═══════════════════════════════════════════
 function exportarGrupoExcel() {
   const eventos = DB.getEventos(grupoAtual.id);
   const itens = DB.getItensGrupo(grupoAtual.id);
   const cats = crAtual ? DB.getCategoriasDisponiveis(crAtual.id) : [];
   const data = [];
+  const totalCols = 7 + (eventos.length * 4);
 
-  // Linha 1: Header superior
-  const h1 = ['','','','Orçamento','','',''];
-  eventos.forEach(ev => { h1.push(ev.nome,'','',''); });
+  // Linha 0: Título
+  const tituloRow = [grupoAtual.nome + ' — ' + (crAtual ? crAtual.nome : '')];
+  for (let i = 1; i < totalCols; i++) tituloRow.push('');
+  data.push(tituloRow);
+
+  // Linha 1: Data exportação
+  const dataRow = ['Exportado em: ' + new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR')];
+  for (let i = 1; i < totalCols; i++) dataRow.push('');
+  data.push(dataRow);
+
+  // Linha 2: vazia
+  data.push(Array(totalCols).fill(''));
+
+  // Linha 3: Header superior
+  const h1 = ['', '', '', 'ORCAMENTO', '', '', ''];
+  eventos.forEach(ev => { h1.push(ev.nome, '', '', ''); });
   data.push(h1);
 
-  // Linha 2: Sub-header
-  const h2 = ['Categoria','Descrição','Fornecedor','Valor Unitário','Quantidade','Vlr Total','Nr do Pedido'];
-  eventos.forEach(() => { h2.push('Valor','Nr da NF','AS','Pago?'); });
+  // Linha 4: Sub-header
+  const h2 = ['Categoria', 'Descrição', 'Fornecedor', 'Vlr Unitário', 'Qtd', 'Vlr Total', 'Nr Pedido'];
+  eventos.forEach(() => { h2.push('Valor', 'Nr da NF', 'AS', 'Pago?'); });
   data.push(h2);
 
   // Dados
+  let totalOrcamento = 0;
+  const evTotais = {};
+  eventos.forEach(ev => { evTotais[ev.id] = 0; });
+
   itens.forEach(item => {
-    const catNome = cats.find(c=>c.id===item.categoria)?.nome || item.categoria || '';
-    const row = [catNome, item.descricao||'', item.fornecedor||'', item.vlrUnitario||'', item.qtd||'', item.vlrTotal||'', item.nrPedido||''];
+    const catNome = cats.find(c => c.id === item.categoria)?.nome || item.categoria || '';
+    const vlrTotal = parseFloat(item.vlrTotal) || 0;
+    totalOrcamento += vlrTotal;
+
+    const row = [
+      catNome,
+      item.descricao || '',
+      item.fornecedor || '',
+      parseFloat(item.vlrUnitario) || 0,
+      parseFloat(item.qtd) || 0,
+      vlrTotal,
+      item.nrPedido || ''
+    ];
+
     eventos.forEach(ev => {
-      const d = (item.eventos&&item.eventos[ev.id]) || {};
-      row.push(d.valor||'', d.nrNF||'', d.as?'✔':'', d.pago?'✔':'');
+      const d = (item.eventos && item.eventos[ev.id]) || {};
+      const v = parseFloat(d.valor) || 0;
+      evTotais[ev.id] += v;
+      row.push(v, d.nrNF || '', d.as ? 'Sim' : '', d.pago ? 'Sim' : '');
     });
     data.push(row);
   });
 
+  // Linha Total
+  const totalRow = ['', '', '', '', 'TOTAL', totalOrcamento, ''];
+  eventos.forEach(ev => { totalRow.push(evTotais[ev.id], '', '', ''); });
+  data.push(totalRow);
+
+  // Criar workbook
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
 
-  // Largura das colunas
-  const totalCols = 7 + (eventos.length * 4);
-  ws['!cols'] = Array.from({length:totalCols}, (_,i) => ({wch: i<3?22:14}));
+  // Larguras
+  const colWidths = [{ wch: 20 }, { wch: 22 }, { wch: 18 }, { wch: 14 }, { wch: 8 }, { wch: 14 }, { wch: 14 }];
+  eventos.forEach(() => { colWidths.push({ wch: 14 }, { wch: 14 }, { wch: 6 }, { wch: 8 }); });
+  ws['!cols'] = colWidths;
 
   // Merges
-  const merges = [{ s:{r:0,c:3}, e:{r:0,c:6} }];
-  eventos.forEach((_,i) => {
-    const sc = 7+(i*4);
-    merges.push({ s:{r:0,c:sc}, e:{r:0,c:sc+3} });
+  const merges = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } },  // título
+    { s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } },  // data
+    { s: { r: 3, c: 3 }, e: { r: 3, c: 6 } }                // "ORCAMENTO"
+  ];
+  eventos.forEach((_, i) => {
+    const sc = 7 + (i * 4);
+    merges.push({ s: { r: 3, c: sc }, e: { r: 3, c: sc + 3 } });
   });
   ws['!merges'] = merges;
 
-  const sheetName = grupoAtual.nome.substring(0,31).replace(/[\\\/\*\?\[\]]/g,'');
+  // ESTILOS
+  // Título (linha 0)
+  applyStylesToRange(ws, 0, 0, 0, totalCols - 1,
+    stl('0F766E', FONT_TITLE, BORDER_THIN, null, ALIGN_CENTER));
+
+  // Data (linha 1)
+  applyStylesToRange(ws, 1, 0, 1, totalCols - 1,
+    stl('F0FDFA', { color: { rgb: '6B7280' }, sz: 9, italic: true }, BORDER_THIN, null, ALIGN_CENTER));
+
+  // Header superior (linha 3) - orçamento
+  applyStylesToRange(ws, 3, 0, 3, 6,
+    stl('0F766E', FONT_HEADER, BORDER_THIN, null, ALIGN_CENTER));
+
+  // Header superior (linha 3) - eventos
+  eventos.forEach((_, i) => {
+    const sc = 7 + (i * 4);
+    applyStylesToRange(ws, 3, sc, 3, sc + 3,
+      stl('1D4ED8', FONT_HEADER, BORDER_THIN, null, ALIGN_CENTER));
+  });
+
+  // Sub-header (linha 4)
+  applyStylesToRange(ws, 4, 0, 4, totalCols - 1,
+    stl('F9FAFB', FONT_SUB, BORDER_BOTTOM_THICK, null, ALIGN_CENTER));
+
+  // Dados (linhas 5 até 5+itens.length-1)
+  const dataStart = 5;
+  const dataEnd = dataStart + itens.length - 1;
+  for (let r = dataStart; r <= dataEnd; r++) {
+    // Colunas orçamento
+    for (let c = 0; c < 7; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (!ws[addr]) ws[addr] = { v: '', t: 's' };
+      const isNum = (c === 3 || c === 4 || c === 5);
+      ws[addr].s = stl(
+        r % 2 === 0 ? 'FFFFFF' : 'F9FAFB',
+        FONT_NORMAL,
+        BORDER_THIN,
+        isNum ? BRL_FMT : null,
+        isNum ? ALIGN_RIGHT : ALIGN_LEFT
+      );
+    }
+    // Colunas eventos
+    eventos.forEach((_, i) => {
+      const sc = 7 + (i * 4);
+      for (let c = sc; c < sc + 4; c++) {
+        const addr = XLSX.utils.encode_cell({ r, c });
+        if (!ws[addr]) ws[addr] = { v: '', t: 's' };
+        const isVal = (c === sc);
+        ws[addr].s = stl(
+          r % 2 === 0 ? 'F0F4FF' : 'F8FAFF',
+          FONT_NORMAL,
+          BORDER_THIN,
+          isVal ? BRL_FMT : null,
+          (c >= sc + 2) ? ALIGN_CENTER : (isVal ? ALIGN_RIGHT : ALIGN_LEFT)
+        );
+      }
+    });
+  }
+
+  // Linha Total
+  const totalRowIdx = dataEnd + 1;
+  applyStylesToRange(ws, totalRowIdx, 0, totalRowIdx, totalCols - 1,
+    stl('E5E7EB', FONT_TOTAL, BORDER_BOTTOM_THICK, null, ALIGN_CENTER));
+  // Valor total em formato BRL
+  const ftAddr = XLSX.utils.encode_cell({ r: totalRowIdx, c: 5 });
+  if (ws[ftAddr]) ws[ftAddr].s = stl('E5E7EB', FONT_TOTAL, BORDER_BOTTOM_THICK, BRL_FMT, ALIGN_RIGHT);
+  eventos.forEach((ev, i) => {
+    const sc = 7 + (i * 4);
+    const addr = XLSX.utils.encode_cell({ r: totalRowIdx, c: sc });
+    if (ws[addr]) ws[addr].s = stl('E5E7EB', { bold: true, color: { rgb: '1D4ED8' }, sz: 11 }, BORDER_BOTTOM_THICK, BRL_FMT, ALIGN_RIGHT);
+  });
+
+  const sheetName = grupoAtual.nome.substring(0, 31).replace(/[\\\/\*\?\[\]]/g, '');
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
   XLSX.writeFile(wb, `${grupoAtual.nome}.xlsx`);
+  showToast('Excel exportado com sucesso!');
 }
 
 // ═══════════════════════════════════════════
-// EXPORTAR EXCEL — BALANCETE
+// EXPORTAR EXCEL — BALANCETE (#7)
 // ═══════════════════════════════════════════
 function exportarBalanceteExcel() {
   const grupos = DB.getGrupos(crAtual.id);
+  const orc = DB.getOrcamento(crAtual.id);
   const data = [];
+  let row = 0;
 
-  data.push([`Balancete — ${crAtual.nome}`]);
-  data.push([]);
-  data.push(['Grupo','Eventos','Total','Pago','Pendente']);
+  // Linha 0: Título
+  data.push(['Balancete — ' + crAtual.nome, '', '', '']);
+  row++;
 
-  let totalCR = 0, pagoCR = 0;
+  // Linha 1: Data
+  data.push(['Exportado em: ' + new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'), '', '', '']);
+  row++;
+
+  // Linha 2: vazia
+  data.push(['', '', '', '']);
+  row++;
+
+  // ═══ SEÇÃO 1: ENTRADAS ═══
+  data.push(['1. ENTRADAS', '', '', '']);
+  row++;
+  data.push(['', '1.1 Orcamento', '', orc]);
+  row++;
+  data.push(['', 'Total Entradas', '', orc]);
+  row++;
+
+  // Linha vazia
+  data.push(['', '', '', '']);
+  row++;
+
+  // Coletar passivos e circulante
+  const passivos = {};
+  const circulante = {};
+  let totalPassivos = 0;
+  let totalCirculante = 0;
+
   grupos.forEach(g => {
     const eventos = DB.getEventos(g.id);
     const itens = DB.getItensGrupo(g.id);
-    let totalG = 0, pagoG = 0;
     itens.forEach(item => {
+      const catNome = getCatNome(item.categoria);
       eventos.forEach(ev => {
-        const d = item.eventos&&item.eventos[ev.id];
-        if (d) { const v=parseFloat(d.valor)||0; totalG+=v; if(d.pago) pagoG+=v; }
+        const d = item.eventos && item.eventos[ev.id];
+        if (d) {
+          const v = parseFloat(d.valor) || 0;
+          if (v === 0) return;
+          const destino = d.pago ? passivos : circulante;
+          if (!destino[g.nome]) destino[g.nome] = {};
+          if (!destino[g.nome][catNome]) destino[g.nome][catNome] = 0;
+          destino[g.nome][catNome] += v;
+          if (d.pago) totalPassivos += v; else totalCirculante += v;
+        }
       });
     });
-    totalCR += totalG;
-    pagoCR += pagoG;
-    data.push([g.nome, eventos.length, totalG, pagoG, totalG-pagoG]);
   });
 
-  const orc = DB.getOrcamento(crAtual.id);
-  data.push([]);
-  data.push(['Orçamento Total','',orc,'','']);
-  data.push(['Total Gasto','',totalCR,'','']);
-  data.push(['Total Pago','',pagoCR,'','']);
-  data.push(['Saldo','',orc-totalCR,'','']);
+  // ═══ SEÇÃO 2: PASSIVOS ═══
+  const passivosStart = row;
+  data.push(['2. PASSIVOS (Despesas Pagas)', '', '', '']);
+  row++;
 
+  let pIdx = 1;
+  for (const grupoNome in passivos) {
+    data.push(['', `2.${pIdx} ${grupoNome}`, '', '']);
+    row++;
+    let subTotal = 0;
+    let cIdx = 1;
+    for (const catNome in passivos[grupoNome]) {
+      const v = passivos[grupoNome][catNome];
+      subTotal += v;
+      data.push(['', '', `2.${pIdx}.${cIdx} ${catNome}`, v]);
+      row++;
+      cIdx++;
+    }
+    data.push(['', '', 'Subtotal', subTotal]);
+    row++;
+    pIdx++;
+  }
+  if (Object.keys(passivos).length === 0) {
+    data.push(['', 'Nenhuma despesa paga', '', 0]);
+    row++;
+  }
+  data.push(['', 'Total Passivos', '', totalPassivos]);
+  row++;
+
+  // Linha vazia
+  data.push(['', '', '', '']);
+  row++;
+
+  // ═══ SEÇÃO 3: PASSIVOS CIRCULANTE ═══
+  const circulanteStart = row;
+  data.push(['3. PASSIVOS CIRCULANTE (Despesas Pendentes)', '', '', '']);
+  row++;
+
+  let cIdxG = 1;
+  for (const grupoNome in circulante) {
+    data.push(['', `3.${cIdxG} ${grupoNome}`, '', '']);
+    row++;
+    let subTotal = 0;
+    let cIdx = 1;
+    for (const catNome in circulante[grupoNome]) {
+      const v = circulante[grupoNome][catNome];
+      subTotal += v;
+      data.push(['', '', `3.${cIdxG}.${cIdx} ${catNome}`, v]);
+      row++;
+      cIdx++;
+    }
+    data.push(['', '', 'Subtotal', subTotal]);
+    row++;
+    cIdxG++;
+  }
+  if (Object.keys(circulante).length === 0) {
+    data.push(['', 'Nenhuma despesa pendente', '', 0]);
+    row++;
+  }
+  data.push(['', 'Total Passivos Circulante', '', totalCirculante]);
+  row++;
+
+  // Linha vazia
+  data.push(['', '', '', '']);
+  row++;
+
+  // ═══ RESUMO ═══
+  const resumoStart = row;
+  data.push(['RESUMO', '', '', '']);
+  row++;
+  data.push(['', 'Entradas', '', orc]);
+  row++;
+  data.push(['', '(-) Passivos', '', totalPassivos]);
+  row++;
+  data.push(['', '(-) Passivos Circulante', '', totalCirculante]);
+  row++;
+  const saldo = orc - totalPassivos - totalCirculante;
+  data.push(['', 'SALDO DISPONÍVEL', '', saldo]);
+  row++;
+
+  // Criar workbook
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
-  ws['!cols'] = [{wch:25},{wch:12},{wch:18},{wch:18},{wch:18}];
-  ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:4}}];
+
+  ws['!cols'] = [{ wch: 8 }, { wch: 30 }, { wch: 30 }, { wch: 20 }];
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
+  ];
+
+  // Estilos
+  // Título
+  applyStylesToRange(ws, 0, 0, 0, 3,
+    stl('0F766E', FONT_TITLE, BORDER_THIN, null, ALIGN_CENTER));
+
+  // Data
+  applyStylesToRange(ws, 1, 0, 1, 3,
+    stl('F0FDFA', { color: { rgb: '6B7280' }, sz: 9, italic: true }, BORDER_THIN, null, ALIGN_CENTER));
+
+  // Aplicar estilos em todas as linhas de dados
+  for (let r = 3; r < data.length; r++) {
+    const rowData = data[r];
+    for (let c = 0; c < 4; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (!ws[addr]) ws[addr] = { v: '', t: 's' };
+
+      // Títulos de seção
+      if (rowData[0] && (rowData[0].startsWith('1.') || rowData[0].startsWith('2.') || rowData[0].startsWith('3.') || rowData[0] === 'RESUMO')) {
+        let bgColor = 'F9FAFB';
+        let fontColor = '111827';
+        if (rowData[0].startsWith('1.')) { bgColor = '0F766E'; fontColor = 'FFFFFF'; }
+        else if (rowData[0].startsWith('2.')) { bgColor = 'DC2626'; fontColor = 'FFFFFF'; }
+        else if (rowData[0].startsWith('3.')) { bgColor = 'F59E0B'; fontColor = '111827'; }
+        else if (rowData[0] === 'RESUMO') { bgColor = '0F766E'; fontColor = 'FFFFFF'; }
+        ws[addr].s = stl(bgColor, { bold: true, color: { rgb: fontColor }, sz: 11 }, BORDER_THIN, null, ALIGN_LEFT);
+      }
+      // Subtotais e totais
+      else if (c === 2 && (rowData[2] === 'Subtotal')) {
+        ws[addr].s = stl('F3F4F6', FONT_BOLD, BORDER_THIN, null, ALIGN_LEFT);
+        const valAddr = XLSX.utils.encode_cell({ r, c: 3 });
+        if (ws[valAddr]) ws[valAddr].s = stl('F3F4F6', FONT_BOLD, BORDER_THIN, BRL_FMT, ALIGN_RIGHT);
+      }
+      else if (c === 1 && rowData[1] && rowData[1].startsWith('Total')) {
+        ws[addr].s = stl('E5E7EB', FONT_TOTAL, BORDER_BOTTOM_THICK, null, ALIGN_LEFT);
+        const valAddr = XLSX.utils.encode_cell({ r, c: 3 });
+        if (ws[valAddr]) ws[valAddr].s = stl('E5E7EB', FONT_TOTAL, BORDER_BOTTOM_THICK, BRL_FMT, ALIGN_RIGHT);
+      }
+      else if (c === 1 && rowData[1] === 'SALDO DISPONÍVEL') {
+        ws[addr].s = stl('0F766E', { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 }, BORDER_THIN, null, ALIGN_LEFT);
+        const valAddr = XLSX.utils.encode_cell({ r, c: 3 });
+        if (ws[valAddr]) ws[valAddr].s = stl('0F766E', { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 }, BORDER_THIN, BRL_FMT, ALIGN_RIGHT);
+      }
+      // Valores normais
+      else if (c === 3 && typeof rowData[3] === 'number') {
+        ws[addr].s = stl(null, FONT_NORMAL, BORDER_THIN, BRL_FMT, ALIGN_RIGHT);
+      }
+      // Grupo header
+      else if (c === 1 && rowData[1] && (rowData[1].match(/^\d\.\d\s/) || rowData[1] === '1.1 Orcamento')) {
+        ws[addr].s = stl('F0FDFA', { bold: true, color: { rgb: '0F766E' }, sz: 10 }, BORDER_THIN, null, ALIGN_LEFT);
+      }
+      // Normal
+      else {
+        ws[addr].s = stl(null, FONT_NORMAL, BORDER_THIN, null, ALIGN_LEFT);
+      }
+    }
+  }
 
   XLSX.utils.book_append_sheet(wb, ws, 'Balancete');
   XLSX.writeFile(wb, `Balancete_${crAtual.nome}.xlsx`);
+  showToast('Balancete exportado com sucesso!');
 }
 
 // ═══════════════════════════════════════════
@@ -698,12 +1280,13 @@ function renderCategoriasPadrao() {
 
 function salvarCategoriaPadrao() {
   const nome = document.getElementById('input-cat-padrao').value.trim();
-  if (!nome) { alert('Informe o nome da categoria.'); return; }
+  if (!nome) { showToast('Informe o nome da categoria.', 'warning'); return; }
   const cats = DB.getCategoriasPadrao();
-  cats.push({ id:gerarId(), nome, ativo:true });
+  cats.push({ id: gerarId(), nome, ativo: true });
   DB.saveCategoriasPadrao(cats);
   document.getElementById('input-cat-padrao').value = '';
   fecharModal('modal-categoria-padrao');
+  showToast('Categoria criada!');
   renderCategoriasPadrao();
 }
 
@@ -723,19 +1306,20 @@ function abrirModalCatCR(crId, crNome) {
 
 function salvarCategoriaCR() {
   const nome = document.getElementById('input-cat-cr').value.trim();
-  if (!nome) { alert('Informe o nome.'); return; }
+  if (!nome) { showToast('Informe o nome.', 'warning'); return; }
   const extras = DB.getCategoriasExtrasCR(crIdModalCat);
-  extras.push({ id:gerarId(), nome, ativo:true });
+  extras.push({ id: gerarId(), nome, ativo: true });
   DB.saveCategoriasExtrasCR(crIdModalCat, extras);
   document.getElementById('input-cat-cr').value = '';
   fecharModal('modal-categoria-cr');
+  showToast('Categoria adicionada ao CR!');
   renderCategoriasCRs();
 }
 
 function togglePadraoNoCR(crId, catId) {
   const d = DB.getCategoriasDesativadasCR(crId);
   const i = d.indexOf(catId);
-  if (i===-1) d.push(catId); else d.splice(i,1);
+  if (i === -1) d.push(catId); else d.splice(i, 1);
   DB.saveCategoriasDesativadasCR(crId, d);
 }
 
@@ -745,9 +1329,11 @@ function toggleCategoriaExtraCR(crId, catId) {
 }
 
 function deletarCategoriaExtraCR(crId, catId) {
-  if (!confirm('Remover esta categoria?')) return;
-  DB.saveCategoriasExtrasCR(crId, DB.getCategoriasExtrasCR(crId).filter(c=>c.id!==catId));
-  renderCategoriasCRs();
+  mostrarConfirmacao('Remover Categoria', 'Deseja remover esta categoria?', 'Remover', () => {
+    DB.saveCategoriasExtrasCR(crId, DB.getCategoriasExtrasCR(crId).filter(c => c.id !== catId));
+    showToast('Categoria removida.', 'info');
+    renderCategoriasCRs();
+  });
 }
 
 function renderCategoriasCRs() {
@@ -766,8 +1352,8 @@ function renderCategoriasCRs() {
     body.innerHTML = buildBodyCategoriaCR(cr);
     titulo.addEventListener('click', () => {
       const isOpen = body.classList.contains('open');
-      container.querySelectorAll('.config-cr-body').forEach(b=>b.classList.remove('open'));
-      container.querySelectorAll('.config-cr-titulo').forEach(t=>t.classList.remove('open'));
+      container.querySelectorAll('.config-cr-body').forEach(b => b.classList.remove('open'));
+      container.querySelectorAll('.config-cr-titulo').forEach(t => t.classList.remove('open'));
       if (!isOpen) { body.classList.add('open'); titulo.classList.add('open'); }
     });
     bloco.appendChild(titulo);
@@ -779,14 +1365,14 @@ function renderCategoriasCRs() {
 function buildBodyCategoriaCR(cr) {
   const extras = DB.getCategoriasExtrasCR(cr.id);
   const desativadas = DB.getCategoriasDesativadasCR(cr.id);
-  const padrao = DB.getCategoriasPadrao().filter(c=>c.ativo);
+  const padrao = DB.getCategoriasPadrao().filter(c => c.ativo);
 
   return `
     <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
       <button class="btn-add-cat-small" onclick="abrirModalCatCR('${cr.id}','${esc(cr.nome)}')">+ Adicionar</button>
     </div>
     <p style="font-size:11px;color:#a0aec0;margin-bottom:8px;font-weight:600;text-transform:uppercase;">Categorias Padrão</p>
-    ${padrao.map(c=>`
+    ${padrao.map(c => `
       <div class="cat-item ${desativadas.includes(c.id)?'cat-inativo':''}">
         <span class="cat-nome">${esc(c.nome)}</span>
         <label class="toggle">
@@ -794,9 +1380,9 @@ function buildBodyCategoriaCR(cr) {
           <span class="toggle-slider"></span>
         </label>
       </div>`).join('')}
-    ${extras.length?`
+    ${extras.length ? `
       <p style="font-size:11px;color:#a0aec0;margin:12px 0 8px;font-weight:600;text-transform:uppercase;">Exclusivas deste CR</p>
-      ${extras.map(cat=>`
+      ${extras.map(cat => `
         <div class="cat-item ${!cat.ativo?'cat-inativo':''}">
           <span class="cat-nome">${esc(cat.nome)}</span>
           <div class="cat-acoes">
@@ -806,7 +1392,7 @@ function buildBodyCategoriaCR(cr) {
             </label>
             <button class="btn-icon-danger" onclick="deletarCategoriaExtraCR('${cr.id}','${cat.id}')">Remover</button>
           </div>
-        </div>`).join('')}`:''}`;
+        </div>`).join('')}` : ''}`;
 }
 
 // ═══════════════════════════════════════════

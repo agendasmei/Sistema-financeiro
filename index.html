@@ -6,8 +6,12 @@
   <title>Sistema Financeiro MEI</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
 </head>
 <body>
+
+  <!-- TOAST -->
+  <div id="toast-container"></div>
 
   <header>
     <div class="header-inner">
@@ -21,14 +25,14 @@
       </span>
       <div class="header-nav">
         <button class="btn-voltar" id="btn-voltar" onclick="voltarTela()" style="display:none">← Voltar</button>
-        <button class="btn-config" onclick="abrirConfiguracoes()" title="Configurações">⚙️</button>
+        <button class="btn-config" onclick="abrirConfiguracoes()" title="Configurações">⚙</button>
       </div>
     </div>
   </header>
 
   <main>
 
-    <!-- TELA: LISTA DE CRs -->
+    <!-- TELA: CRs -->
     <div id="tela-crs" class="tela active">
       <div class="tela-header">
         <h2>Meus CRs</h2>
@@ -37,55 +41,36 @@
       <div id="lista-crs" class="grid-cards"></div>
     </div>
 
-    <!-- TELA: GRUPOS DO CR -->
+    <!-- TELA: GRUPOS -->
     <div id="tela-grupos" class="tela">
       <div class="tela-header">
         <h2 id="titulo-grupos">Grupos</h2>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn-secondary" onclick="verBalancete()">📊 Balancete</button>
+          <button class="btn-secondary" onclick="verBalancete()">Balancete</button>
           <button onclick="abrirModal('modal-grupo')">+ Novo Grupo</button>
         </div>
       </div>
       <div id="lista-grupos" class="grid-cards"></div>
     </div>
 
-    <!-- TELA: DETALHE DO GRUPO (tabela estilo planilha) -->
+    <!-- TELA: DETALHE GRUPO -->
     <div id="tela-grupo-detalhe" class="tela">
       <div class="tela-header">
         <h2 id="titulo-grupo-detalhe">Grupo</h2>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn-secondary" onclick="exportarGrupoExcel()">📥 Exportar Excel</button>
+          <button class="btn-secondary" onclick="exportarGrupoExcel()">Exportar Excel</button>
           <button class="btn-secondary" onclick="abrirModal('modal-evento')">+ Novo Evento</button>
           <button onclick="addItemGrupo()">+ Adicionar Item</button>
         </div>
       </div>
-
-      <!-- RESUMO -->
       <div class="resumo-reuniao">
-        <div class="resumo-reuniao-item">
-          <span class="resumo-label">Orçamento</span>
-          <span class="resumo-valor" id="resumo-orcamento">R$ 0,00</span>
-        </div>
-        <div class="resumo-reuniao-item">
-          <span class="resumo-label">Total Gasto</span>
-          <span class="resumo-valor resumo-gasto" id="resumo-gasto">R$ 0,00</span>
-        </div>
-        <div class="resumo-reuniao-item">
-          <span class="resumo-label">Pago</span>
-          <span class="resumo-valor resumo-saldo" id="resumo-pago">R$ 0,00</span>
-        </div>
-        <div class="resumo-reuniao-item">
-          <span class="resumo-label">Pendente</span>
-          <span class="resumo-valor resumo-negativo" id="resumo-pendente">R$ 0,00</span>
-        </div>
+        <div class="resumo-reuniao-item"><span class="resumo-label">Orçamento</span><span class="resumo-valor" id="resumo-orcamento">R$ 0,00</span></div>
+        <div class="resumo-reuniao-item"><span class="resumo-label">Total Gasto</span><span class="resumo-valor resumo-gasto" id="resumo-gasto">R$ 0,00</span></div>
+        <div class="resumo-reuniao-item"><span class="resumo-label">Pago</span><span class="resumo-valor resumo-saldo" id="resumo-pago">R$ 0,00</span></div>
+        <div class="resumo-reuniao-item"><span class="resumo-label">Pendente</span><span class="resumo-valor resumo-negativo" id="resumo-pendente">R$ 0,00</span></div>
       </div>
-
-      <!-- TABELA DINÂMICA -->
-      <div class="table-wrapper">
-        <div class="table-scroll" id="tabela-grupo-wrapper"></div>
-      </div>
-
-      <button class="btn-salvar" onclick="salvarGrupoItens()">💾 Salvar</button>
+      <div class="table-wrapper"><div class="table-scroll" id="tabela-grupo-wrapper"></div></div>
+      <button class="btn-salvar" onclick="salvarGrupoItens()">Salvar</button>
     </div>
 
     <!-- TELA: BALANCETE -->
@@ -93,7 +78,7 @@
       <div class="tela-header">
         <h2 id="titulo-balancete">Balancete</h2>
         <div style="display:flex;gap:10px;">
-          <button class="btn-secondary" onclick="exportarBalanceteExcel()">📥 Exportar Excel</button>
+          <button class="btn-secondary" onclick="exportarBalanceteExcel()">Exportar Excel</button>
           <button class="btn-secondary" onclick="irParaGrupos()">Voltar</button>
         </div>
       </div>
@@ -127,8 +112,7 @@
 
   </main>
 
-  <!-- ══════ MODAIS ══════ -->
-
+  <!-- MODAIS -->
   <div id="modal-cr" class="modal">
     <div class="modal-box">
       <h3>Novo CR</h3>
@@ -142,14 +126,38 @@
     </div>
   </div>
 
-  <div id="modal-orcamento" class="modal">
+  <div id="modal-editar-cr" class="modal">
     <div class="modal-box">
-      <h3>Editar Orçamento</h3>
-      <label class="input-label">Valor (R$)</label>
-      <input id="input-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
+      <h3 id="titulo-modal-editar-cr">Editar CR</h3>
+      <label class="input-label">Nome do CR</label>
+      <input id="input-editar-cr-nome" type="text" placeholder="Nome do CR">
+      <label class="input-label">Orçamento (R$)</label>
+      <input id="input-editar-cr-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
       <div class="modal-actions">
-        <button onclick="salvarOrcamento()">Salvar</button>
-        <button class="btn-cancel" onclick="fecharModal('modal-orcamento')">Cancelar</button>
+        <button onclick="salvarEdicaoCR()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-editar-cr')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-editar-grupo" class="modal">
+    <div class="modal-box">
+      <h3>Editar Grupo</h3>
+      <input id="input-editar-grupo-nome" type="text" placeholder="Nome do grupo">
+      <div class="modal-actions">
+        <button onclick="salvarEdicaoGrupo()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-editar-grupo')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-editar-evento" class="modal">
+    <div class="modal-box">
+      <h3>Editar Evento</h3>
+      <input id="input-editar-evento-nome" type="text" placeholder="Nome do evento">
+      <div class="modal-actions">
+        <button onclick="salvarEdicaoEvento()">Salvar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-editar-evento')">Cancelar</button>
       </div>
     </div>
   </div>
@@ -198,22 +206,35 @@
     </div>
   </div>
 
-  <div id="modal-confirmar-delete" class="modal">
+  <!-- MODAL POPOVER Nr Pedido / Nr NF -->
+  <div id="modal-nr-detalhe" class="modal">
     <div class="modal-box modal-box-sm">
-      <h3>Confirmar exclusão</h3>
-      <p style="font-size:14px;color:#4a5568;">Deseja realmente remover este item?</p>
+      <h3 id="titulo-modal-nr">Detalhes</h3>
+      <label class="input-label">Número</label>
+      <input id="input-nr-numero" type="text" placeholder="Número">
+      <label class="input-label">Link</label>
+      <input id="input-nr-link" type="text" placeholder="https://...">
       <div class="modal-actions">
-        <button class="btn-danger" onclick="confirmarRemoveRow()">Remover</button>
-        <button class="btn-cancel" onclick="fecharModal('modal-confirmar-delete')">Cancelar</button>
+        <button onclick="salvarNrDetalhe()">OK</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-nr-detalhe')">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- MENU CONTEXTO (3 pontinhos) -->
-  <div id="ctx-menu" class="ctx-menu">
-    <div class="ctx-menu-item" id="ctx-editar">✏️ Editar Orçamento</div>
-    <div class="ctx-menu-item ctx-danger" id="ctx-deletar">🗑️ Deletar</div>
+  <!-- MODAL CONFIRMAR -->
+  <div id="modal-confirmar" class="modal">
+    <div class="modal-box modal-box-sm">
+      <h3 id="confirmar-titulo">Confirmar</h3>
+      <p id="confirmar-msg" style="font-size:14px;color:#4a5568;"></p>
+      <div class="modal-actions">
+        <button class="btn-danger" id="confirmar-btn-ok">Confirmar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-confirmar')">Cancelar</button>
+      </div>
+    </div>
   </div>
+
+  <!-- MENU CONTEXTO -->
+  <div id="ctx-menu" class="ctx-menu"></div>
 
   <script src="db.js"></script>
   <script src="app.js"></script>
