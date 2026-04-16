@@ -4,7 +4,9 @@
 
 // ── Inicializa tela correta ao carregar ──
 document.addEventListener('DOMContentLoaded', () => {
+  DB.inicializarAdmPadrao(); // 👈 linha nova
   const usuario = DB.usuarioLogado();
+
   if (usuario) {
     entrarNoSistema(usuario);
   } else {

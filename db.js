@@ -140,4 +140,25 @@ const DB = {
     if (u.tipo === 'adm') return true;
     return u.grupoId === grupoId;
   },
+  // ══════════════════════════════════════════
+  // INIT — Garante que sempre existe um ADM padrão
+  // ══════════════════════════════════════════
+  inicializarAdmPadrao: () => {
+    const usuarios = DB.getUsuarios();
+    const crs = DB.getCRs();
+
+    if (usuarios.length > 0) return;
+
+    let crId;
+    if (crs.length > 0) {
+      crId = crs[0].id;
+    } else {
+      const crPadrao = { id: '_cr_padrao', nome: 'CR Principal' };
+      DB.saveCRs([crPadrao]);
+      crId = crPadrao.id;
+    }
+
+    DB.criarUsuario('Administrador', 'adm', crId, null);
+  },
 };
+
