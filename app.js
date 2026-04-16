@@ -135,17 +135,18 @@ function salvarModalNumLink() {
 // NR PEDIDO
 // ═══════════════════════════════════════════
 function abrirModalPedido(idx) {
-  const row  = document.querySelector(`tr[data-row="${idx}"]`);
-  const num  = row?.querySelector('[data-f="nrPedido"]')?.value     || '';
-  const link = row?.querySelector('[data-f="nrPedidoLink"]')?.value || '';
+  const itens = DB.getItensGrupo(grupoAtual.id);
+  const item  = itens[idx];
+  const num   = item?.nrPedido     || '';
+  const link  = item?.nrPedidoLink || '';
 
   abrirModalNumLink('Nr do Pedido', num, link, (novoNum, novoLink) => {
-    const r = document.querySelector(`tr[data-row="${idx}"]`);
-    if (r) {
-      r.querySelector('[data-f="nrPedido"]').value     = novoNum;
-      r.querySelector('[data-f="nrPedidoLink"]').value = novoLink;
+    const itensAtuais = coletarItensDoDOM();
+    if (itensAtuais[idx]) {
+      itensAtuais[idx].nrPedido     = novoNum;
+      itensAtuais[idx].nrPedidoLink = novoLink;
     }
-    DB.saveItensGrupo(grupoAtual.id, coletarItensDoDOM());
+    DB.saveItensGrupo(grupoAtual.id, itensAtuais);
     renderGrupoDetalhe();
     showToast('Nr do Pedido salvo!');
   });
@@ -155,26 +156,19 @@ function abrirModalPedido(idx) {
 // NR DA NF  ← CORRIGIDO
 // ═══════════════════════════════════════════
 function abrirModalNF(idx, evId) {
-  // Busca os dados diretamente do DB para garantir que encontra
-  const itens  = DB.getItensGrupo(grupoAtual.id);
-  const item   = itens[idx];
-  const d      = (item?.eventos && item.eventos[evId]) || {};
-  const num    = d.nrNF     || '';
-  const link   = d.nrNFLink || '';
+  const itens = DB.getItensGrupo(grupoAtual.id);
+  const item  = itens[idx];
+  const d     = (item?.eventos && item.eventos[evId]) || {};
+  const num   = d.nrNF     || '';
+  const link  = d.nrNFLink || '';
 
   abrirModalNumLink('Nr da NF', num, link, (novoNum, novoLink) => {
-    // Atualiza também os hidden inputs se ainda existirem no DOM
-    const numEl  = document.querySelector(`[data-ev="${evId}"][data-i="${idx}"][data-ef="nrNF"]`);
-    const linkEl = document.getElementById(`nf-link-${idx}-${evId}`);
-    if (numEl)  numEl.value  = novoNum;
-    if (linkEl) linkEl.value = novoLink;
-
     const itensAtuais = coletarItensDoDOM();
-    if (itensAtuais[idx] && itensAtuais[idx].eventos) {
-      itensAtuais[idx].eventos[evId] = {
-        ...(itensAtuais[idx].eventos[evId] || {}),
-        nrNF: novoNum, nrNFLink: novoLink
-      };
+    if (itensAtuais[idx]) {
+      if (!itensAtuais[idx].eventos)        itensAtuais[idx].eventos        = {};
+      if (!itensAtuais[idx].eventos[evId])  itensAtuais[idx].eventos[evId]  = {};
+      itensAtuais[idx].eventos[evId].nrNF     = novoNum;
+      itensAtuais[idx].eventos[evId].nrNFLink = novoLink;
     }
     DB.saveItensGrupo(grupoAtual.id, itensAtuais);
     renderGrupoDetalhe();
