@@ -605,9 +605,10 @@ function addItemGrupo() {
 
 function coletarItensDoDOM() {
   const eventos = DB.getEventos(grupoAtual.id);
+  const itensDB = DB.getItensGrupo(grupoAtual.id);
   return Array.from(document.querySelectorAll('#tbody-grupo tr')).map((row, idx) => {
     const item = {
-      id:           gerarId(),
+      id:           itensDB[idx]?.id || gerarId(),
       categoria:    row.querySelector('[data-f="categoria"]')?.value    || '',
       descricao:    row.querySelector('[data-f="descricao"]')?.value    || '',
       fornecedor:   row.querySelector('[data-f="fornecedor"]')?.value   || '',
