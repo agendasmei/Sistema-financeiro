@@ -56,7 +56,7 @@ let rowParaRemover = null;
 let crIdModalCat = null;
 let ctxTarget = null;
 let editarNomeCallback = null;
-let pedidoIdxAtual = null;
+let numLinkCallback = null;
 
 // ═══════════════════════════════════════════
 // NAVEGAÇÃO
@@ -129,6 +129,65 @@ function salvarEdicaoNome() {
 }
 
 // ═══════════════════════════════════════════
+// MODAL GENÉRICO NÚMERO + LINK
+// ═══════════════════════════════════════════
+function abrirModalNumLink(titulo, numAtual, linkAtual, callback) {
+  document.getElementById('modal-num-link-titulo').textContent = titulo;
+  document.getElementById('modal-num-link-num').value = numAtual  || '';
+  document.getElementById('modal-num-link-url').value = linkAtual || '';
+  numLinkCallback = callback;
+  abrirModal('modal-num-link');
+  setTimeout(() => document.getElementById('modal-num-link-num').focus(), 100);
+}
+
+function salvarModalNumLink() {
+  const num  = document.getElementById('modal-num-link-num').value.trim();
+  const link = document.getElementById('modal-num-link-url').value.trim();
+  fecharModal('modal-num-link');
+  if (numLinkCallback) { numLinkCallback(num, link); numLinkCallback = null; }
+}
+
+// ═══════════════════════════════════════════
+// NR PEDIDO
+// ═══════════════════════════════════════════
+function abrirModalPedido(idx) {
+  const row  = document.querySelector(`tr[data-row="${idx}"]`);
+  const num  = row?.querySelector('[data-f="nrPedido"]')?.value     || '';
+  const link = row?.querySelector('[data-f="nrPedidoLink"]')?.value  || '';
+
+  abrirModalNumLink('Nº do Pedido', num, link, (novoNum, novoLink) => {
+    const r = document.querySelector(`tr[data-row="${idx}"]`);
+    if (r) {
+      r.querySelector('[data-f="nrPedido"]').value     = novoNum;
+      r.querySelector('[data-f="nrPedidoLink"]').value = novoLink;
+    }
+    const itens = coletarItensDoDOM();
+    DB.saveItensGrupo(grupoAtual.id, itens);
+    renderGrupoDetalhe();
+    showToast('Nº do Pedido salvo!');
+  });
+}
+
+// ═══════════════════════════════════════════
+// NR DA NF
+// ═══════════════════════════════════════════
+function abrirModalNF(idx, evId) {
+  const numEl  = document.querySelector(`[data-ev="${evId}"][data-i="${idx}"][data-ef="nrNF"]`);
+  const linkEl = document.getElementById(`nf-link-${idx}-${evId}`);
+  const num    = numEl?.value  || '';
+  const link   = linkEl?.value || '';
+
+  abrirModalNumLink('Nº da NF', num, link, (novoNum, novoLink) => {
+    if (numEl)  numEl.value  = novoNum;
+    if (linkEl) linkEl.value = novoLink;
+    const itens = coletarItensDoDOM();
+    DB.saveItensGrupo(grupoAtual.id, itens);
+    renderGrupoDetalhe();
+    showToast('NF salva!');
+  });
+}
+
+// ═══════════════════════════════════════════
 // MENU 3 PONTINHOS (⋮)
 // ═══════════════════════════════════════════
 function abrirCtxMenu(e, tipo, id) {
@@ -176,7 +235,7 @@ function abrirCtxMenu(e, tipo, id) {
   const x = Math.min(e.pageX, window.innerWidth - 200);
   const y = Math.min(e.pageY, window.innerHeight - 120);
   menu.style.left = x + 'px';
-  menu.style.top = y + 'px';
+  menu.style.top  = y + 'px';
 }
 
 function fecharCtxMenu() {
@@ -186,7 +245,6 @@ function fecharCtxMenu() {
 
 document.addEventListener('click', fecharCtxMenu);
 
-// Editar nomes
 function editarNomeCR(crId, novoNome) {
   const crs = DB.getCRs();
   const cr = crs.find(c => c.id === crId);
@@ -246,10 +304,10 @@ function renderCRs() {
     return;
   }
   crs.forEach(cr => {
-    const orc = DB.getOrcamento(cr.id);
-    const grupos = DB.getGrupos(cr.id);
+    const orc        = DB.getOrcamento(cr.id);
+    const grupos     = DB.getGrupos(cr.id);
     const totalGasto = calcTotalGastoCR(cr.id);
-    const saldo = orc - totalGasto;
+    const saldo      = orc - totalGasto;
 
     const card = document.createElement('div');
     card.className = 'card';
@@ -271,9 +329,9 @@ function renderCRs() {
 
 function salvarCR() {
   const nome = document.getElementById('input-cr').value.trim();
-  const orc = parseFloat(document.getElementById('input-cr-orcamento').value) || 0;
+  const orc  = parseFloat(document.getElementById('input-cr-orcamento').value) || 0;
   if (!nome) { showToast('Informe o nome do CR.', 'warning'); return; }
-  const crs = DB.getCRs();
+  const crs  = DB.getCRs();
   const novo = { id: gerarId(), nome };
   crs.push(novo);
   DB.saveCRs(crs);
@@ -313,7 +371,7 @@ function salvarOrcamento() {
 // ═══════════════════════════════════════════
 function renderGrupos() {
   document.getElementById('titulo-grupos').textContent = crAtual ? crAtual.nome : 'Grupos';
-  const lista = document.getElementById('lista-grupos');
+  const lista  = document.getElementById('lista-grupos');
   lista.innerHTML = '';
   const grupos = DB.getGrupos(crAtual.id);
   if (!grupos.length) {
@@ -322,7 +380,7 @@ function renderGrupos() {
   }
   grupos.forEach(g => {
     const eventos = DB.getEventos(g.id);
-    const itens = DB.getItensGrupo(g.id);
+    const itens   = DB.getItensGrupo(g.id);
     let total = 0;
     itens.forEach(item => {
       eventos.forEach(ev => {
@@ -392,38 +450,6 @@ function deletarEvento(eventoId) {
 }
 
 // ═══════════════════════════════════════════
-// MODAL NR PEDIDO
-// ═══════════════════════════════════════════
-function abrirModalPedido(idx) {
-  pedidoIdxAtual = idx;
-  const row = document.querySelector(`tr[data-row="${idx}"]`);
-  const num  = row?.querySelector('[data-f="nrPedido"]')?.value || '';
-  const link = row?.querySelector('[data-f="nrPedidoLink"]')?.value || '';
-
-  document.getElementById('modal-pedido-num').value  = num;
-  document.getElementById('modal-pedido-link').value = link;
-  abrirModal('modal-pedido');
-  setTimeout(() => document.getElementById('modal-pedido-num').focus(), 100);
-}
-
-function salvarModalPedido() {
-  const num  = document.getElementById('modal-pedido-num').value.trim();
-  const link = document.getElementById('modal-pedido-link').value.trim();
-
-  const row = document.querySelector(`tr[data-row="${pedidoIdxAtual}"]`);
-  if (row) {
-    row.querySelector('[data-f="nrPedido"]').value     = num;
-    row.querySelector('[data-f="nrPedidoLink"]').value = link;
-  }
-
-  const itens = coletarItensDoDOM();
-  DB.saveItensGrupo(grupoAtual.id, itens);
-  fecharModal('modal-pedido');
-  renderGrupoDetalhe();
-  showToast('Nº do Pedido salvo!');
-}
-
-// ═══════════════════════════════════════════
 // GRUPO DETALHE — TABELA
 // ═══════════════════════════════════════════
 function buildCategoriasOptions(selected) {
@@ -435,7 +461,7 @@ function buildCategoriasOptions(selected) {
 function renderGrupoDetalhe() {
   document.getElementById('titulo-grupo-detalhe').textContent = grupoAtual ? grupoAtual.nome : 'Grupo';
   const eventos = DB.getEventos(grupoAtual.id);
-  const itens = DB.getItensGrupo(grupoAtual.id);
+  const itens   = DB.getItensGrupo(grupoAtual.id);
   const wrapper = document.getElementById('tabela-grupo-wrapper');
 
   const colspanOrc = 7;
@@ -464,36 +490,34 @@ function renderGrupoDetalhe() {
 
   let bodyHtml = '';
   itens.forEach((item, idx) => {
-    const pedNum  = esc(item.nrPedido||'');
-    const pedLink = esc(item.nrPedidoLink||'');
-
-    // Célula Nr Pedido — só mostra número (clicável se tiver link), + botão ✏️
-    const pedidoDisplay = pedNum
-      ? (pedLink
-          ? `<a href="${pedLink}" target="_blank" class="nr-pedido-link" title="Abrir link do pedido">${pedNum} 🔗</a>`
-          : `<span class="nr-pedido-texto">${pedNum}</span>`)
-      : `<span class="nr-pedido-vazio">—</span>`;
+    const pedNum  = esc(item.nrPedido     || '');
+    const pedLink = esc(item.nrPedidoLink || '');
 
     let cells = `
       <td><select data-f="categoria" data-i="${idx}">${buildCategoriasOptions(item.categoria||'')}</select></td>
-      <td><input type="text" data-f="descricao" data-i="${idx}" value="${esc(item.descricao||'')}" placeholder="Descrição"></td>
-      <td><input type="text" data-f="fornecedor" data-i="${idx}" value="${esc(item.fornecedor||'')}" placeholder="Fornecedor"></td>
-      <td><input type="number" data-f="vlrUnitario" data-i="${idx}" value="${item.vlrUnitario||''}" placeholder="0,00" oninput="calcLinhaGrupo(${idx})"></td>
-      <td><input type="number" data-f="qtd" data-i="${idx}" value="${item.qtd||''}" placeholder="0" oninput="calcLinhaGrupo(${idx})"></td>
-      <td><input type="number" data-f="vlrTotal" data-i="${idx}" value="${item.vlrTotal||''}" placeholder="0,00" oninput="updateResumo()"></td>
+      <td><input type="text"   data-f="descricao"   data-i="${idx}" value="${esc(item.descricao||'')}"  placeholder="Descrição"></td>
+      <td><input type="text"   data-f="fornecedor"  data-i="${idx}" value="${esc(item.fornecedor||'')}" placeholder="Fornecedor"></td>
+      <td><input type="number" data-f="vlrUnitario" data-i="${idx}" value="${item.vlrUnitario||''}"     placeholder="0,00" oninput="calcLinhaGrupo(${idx})"></td>
+      <td><input type="number" data-f="qtd"         data-i="${idx}" value="${item.qtd||''}"             placeholder="0"    oninput="calcLinhaGrupo(${idx})"></td>
+      <td><input type="number" data-f="vlrTotal"    data-i="${idx}" value="${item.vlrTotal||''}"        placeholder="0,00" oninput="updateResumo()"></td>
       <td>
         <div class="nr-pedido-cell">
-          ${pedidoDisplay}
-          <button class="btn-nr-pedido-edit" onclick="abrirModalPedido(${idx})" title="Editar Nº Pedido">✏️</button>
+          ${pedNum
+            ? (pedLink
+                ? `<a href="${pedLink}" target="_blank" class="nr-pedido-link">${pedNum}</a>`
+                : `<span class="nr-pedido-texto">${pedNum}</span>`)
+            : `<span class="nr-pedido-vazio">—</span>`
+          }
+          <button class="btn-nr-pedido-edit" onclick="abrirModalPedido(${idx})" title="Editar">✏️</button>
         </div>
         <input type="hidden" data-f="nrPedido"     data-i="${idx}" value="${pedNum}">
         <input type="hidden" data-f="nrPedidoLink" data-i="${idx}" value="${pedLink}">
       </td>`;
 
     eventos.forEach(ev => {
-      const d = (item.eventos && item.eventos[ev.id]) || {};
-      const nfNum  = esc(d.nrNF||'');
-      const nfLink = esc(d.nrNFLink||'');
+      const d      = (item.eventos && item.eventos[ev.id]) || {};
+      const nfNum  = esc(d.nrNF     || '');
+      const nfLink = esc(d.nrNFLink || '');
 
       cells += `
         <td class="td-ev">
@@ -501,21 +525,17 @@ function renderGrupoDetalhe() {
             value="${d.valor||''}" placeholder="0,00" oninput="updateResumo()">
         </td>
         <td class="td-ev">
-          <div class="popover-trigger" onclick="togglePopover(event, 'pop-nf-${idx}-${ev.id}')">
-            <input type="text" data-ev="${ev.id}" data-i="${idx}" data-ef="nrNF"
-              value="${nfNum}" placeholder="NF" readonly style="cursor:pointer">
-            <span class="popover-link-icon">${nfLink ? '🔗' : '+'}</span>
+          <div class="nr-pedido-cell">
+            ${nfNum
+              ? (nfLink
+                  ? `<a href="${nfLink}" target="_blank" class="nr-pedido-link">${nfNum}</a>`
+                  : `<span class="nr-pedido-texto">${nfNum}</span>`)
+              : `<span class="nr-pedido-vazio">NF</span>`
+            }
+            <button class="btn-nr-pedido-edit" onclick="abrirModalNF(${idx},'${ev.id}')" title="Editar NF">✏️</button>
           </div>
-          <div class="popover-panel" id="pop-nf-${idx}-${ev.id}">
-            <label>Número da NF</label>
-            <input type="text" id="pop-nf-num-${idx}-${ev.id}" value="${nfNum}" placeholder="Ex: NF-001">
-            <label>Link</label>
-            <input type="text" id="pop-nf-link-${idx}-${ev.id}" value="${nfLink}" placeholder="https://...">
-            <div class="popover-actions">
-              ${nfLink ? `<button class="btn-secondary" onclick="window.open(document.getElementById('pop-nf-link-${idx}-${ev.id}').value,'_blank')">Abrir</button>` : ''}
-              <button onclick="salvarPopoverNF(${idx},'${ev.id}')">OK</button>
-            </div>
-          </div>
+          <input type="hidden" data-ev="${ev.id}" data-i="${idx}" data-ef="nrNF" value="${nfNum}">
+          <input type="hidden" id="nf-link-${idx}-${ev.id}" value="${nfLink}">
         </td>
         <td class="td-ev check-cell">
           <input type="checkbox" data-ev="${ev.id}" data-i="${idx}" data-ef="as" ${d.as?'checked':''}>
@@ -556,37 +576,6 @@ function renderGrupoDetalhe() {
     </table>`;
 
   updateResumo();
-}
-
-// ═══════════════════════════════════════════
-// POPOVER NF
-// ═══════════════════════════════════════════
-function togglePopover(e, popId) {
-  e.stopPropagation();
-  document.querySelectorAll('.popover-panel.open').forEach(p => {
-    if (p.id !== popId) p.classList.remove('open');
-  });
-  document.getElementById(popId).classList.toggle('open');
-}
-
-document.addEventListener('click', () => {
-  document.querySelectorAll('.popover-panel.open').forEach(p => p.classList.remove('open'));
-});
-
-function salvarPopoverNF(idx, evId) {
-  const num  = document.getElementById(`pop-nf-num-${idx}-${evId}`).value.trim();
-  const link = document.getElementById(`pop-nf-link-${idx}-${evId}`).value.trim();
-  const row  = document.querySelector(`tr[data-row="${idx}"]`);
-  if (row) {
-    const input = row.querySelector(`[data-ev="${evId}"][data-ef="nrNF"]`);
-    if (input) input.value = num;
-  }
-  // Atualiza ícone do link
-  const itens = coletarItensDoDOM();
-  DB.saveItensGrupo(grupoAtual.id, itens);
-  document.getElementById(`pop-nf-${idx}-${evId}`).classList.remove('open');
-  renderGrupoDetalhe();
-  showToast('NF salva!');
 }
 
 // ═══════════════════════════════════════════
@@ -643,20 +632,20 @@ function addItemGrupo() {
 
 function coletarItensDoDOM() {
   const eventos = DB.getEventos(grupoAtual.id);
-  const rows = document.querySelectorAll('#tbody-grupo tr');
-  const itens = [];
+  const rows    = document.querySelectorAll('#tbody-grupo tr');
+  const itens   = [];
 
   rows.forEach((row, idx) => {
     const item = {
       id:           gerarId(),
-      categoria:    row.querySelector('[data-f="categoria"]')?.value    || '',
-      descricao:    row.querySelector('[data-f="descricao"]')?.value    || '',
-      fornecedor:   row.querySelector('[data-f="fornecedor"]')?.value   || '',
-      vlrUnitario:  row.querySelector('[data-f="vlrUnitario"]')?.value  || '',
-      qtd:          row.querySelector('[data-f="qtd"]')?.value          || '',
-      vlrTotal:     row.querySelector('[data-f="vlrTotal"]')?.value     || '',
-      nrPedido:     row.querySelector('[data-f="nrPedido"]')?.value     || '',
-      nrPedidoLink: row.querySelector('[data-f="nrPedidoLink"]')?.value || '',
+      categoria:    row.querySelector('[data-f="categoria"]')?.value     || '',
+      descricao:    row.querySelector('[data-f="descricao"]')?.value     || '',
+      fornecedor:   row.querySelector('[data-f="fornecedor"]')?.value    || '',
+      vlrUnitario:  row.querySelector('[data-f="vlrUnitario"]')?.value   || '',
+      qtd:          row.querySelector('[data-f="qtd"]')?.value           || '',
+      vlrTotal:     row.querySelector('[data-f="vlrTotal"]')?.value      || '',
+      nrPedido:     row.querySelector('[data-f="nrPedido"]')?.value      || '',
+      nrPedidoLink: row.querySelector('[data-f="nrPedidoLink"]')?.value  || '',
       eventos: {}
     };
 
@@ -664,7 +653,7 @@ function coletarItensDoDOM() {
       item.eventos[ev.id] = {
         valor:    row.querySelector(`[data-ev="${ev.id}"][data-ef="valor"]`)?.value || '',
         nrNF:     row.querySelector(`[data-ev="${ev.id}"][data-ef="nrNF"]`)?.value  || '',
-        nrNFLink: document.getElementById(`pop-nf-link-${idx}-${ev.id}`)?.value    || '',
+        nrNFLink: document.getElementById(`nf-link-${idx}-${ev.id}`)?.value        || '',
         as:       row.querySelector(`[data-ev="${ev.id}"][data-ef="as"]`)?.checked  || false,
         pago:     row.querySelector(`[data-ev="${ev.id}"][data-ef="pago"]`)?.checked|| false,
       };
@@ -676,15 +665,15 @@ function coletarItensDoDOM() {
 }
 
 function salvarGrupoItens() {
-  const itens = coletarItensDoDOM();
+  const itens   = coletarItensDoDOM();
   const eventos = DB.getEventos(grupoAtual.id);
 
   for (let i = 0; i < itens.length; i++) {
     const it = itens[i];
-    if (!it.categoria)         { showToast(`Linha ${i+1}: Categoria é obrigatória.`, 'error');   return; }
-    if (!it.descricao.trim())  { showToast(`Linha ${i+1}: Descrição é obrigatória.`, 'error');   return; }
-    if (!it.fornecedor.trim()) { showToast(`Linha ${i+1}: Fornecedor é obrigatório.`, 'error');  return; }
-    if (!it.nrPedido.trim())   { showToast(`Linha ${i+1}: Nr do Pedido é obrigatório.`, 'error'); return; }
+    if (!it.categoria)         { showToast(`Linha ${i+1}: Categoria é obrigatória.`,   'error'); return; }
+    if (!it.descricao.trim())  { showToast(`Linha ${i+1}: Descrição é obrigatória.`,   'error'); return; }
+    if (!it.fornecedor.trim()) { showToast(`Linha ${i+1}: Fornecedor é obrigatório.`,  'error'); return; }
+    if (!it.nrPedido.trim())   { showToast(`Linha ${i+1}: Nr do Pedido é obrigatório.`,'error'); return; }
 
     if (eventos.length > 0) {
       const temEvento = eventos.some(ev => {
@@ -730,7 +719,7 @@ function verBalancete() {
 
 function getCatNome(catId) {
   const padrao = DB.getCategoriasPadrao();
-  const found = padrao.find(c => c.id === catId);
+  const found  = padrao.find(c => c.id === catId);
   if (found) return found.nome;
   const crs = DB.getCRs();
   for (const cr of crs) {
@@ -746,18 +735,18 @@ function renderBalancete() {
   const container = document.getElementById('conteudo-balancete');
   container.innerHTML = '';
   const grupos = DB.getGrupos(crAtual.id);
-  const orc = DB.getOrcamento(crAtual.id);
+  const orc    = DB.getOrcamento(crAtual.id);
 
-  const passivos = {};
-  const circulante = {};
-  let totalPassivos = 0;
+  const passivos    = {};
+  const circulante  = {};
+  let totalPassivos   = 0;
   let totalCirculante = 0;
 
   grupos.forEach(g => { passivos[g.nome] = {}; circulante[g.nome] = {}; });
 
   grupos.forEach(g => {
     const eventos = DB.getEventos(g.id);
-    const itens = DB.getItensGrupo(g.id);
+    const itens   = DB.getItensGrupo(g.id);
     itens.forEach(item => {
       const catNome = getCatNome(item.categoria);
       eventos.forEach(ev => {
@@ -794,9 +783,9 @@ function renderBalancete() {
 
   let pIdx = 1;
   for (const grupoNome in passivos) {
-    const cats = passivos[grupoNome];
+    const cats    = passivos[grupoNome];
     const temCats = Object.keys(cats).length > 0;
-    let subTotal = 0;
+    let subTotal  = 0;
     for (const c in cats) subTotal += cats[c];
     rows += `<tr class="bal-row-grupo">
       <td>2.${pIdx}</td><td>${esc(grupoNome)}</td><td>R$</td>
@@ -822,9 +811,9 @@ function renderBalancete() {
 
   let cIdxG = 1;
   for (const grupoNome in circulante) {
-    const cats = circulante[grupoNome];
+    const cats    = circulante[grupoNome];
     const temCats = Object.keys(cats).length > 0;
-    let subTotal = 0;
+    let subTotal  = 0;
     for (const c in cats) subTotal += cats[c];
     rows += `<tr class="bal-row-grupo">
       <td>3.${cIdxG}</td><td>${esc(grupoNome)}</td><td>R$</td>
@@ -947,12 +936,12 @@ function exportarGrupoExcel() {
 
     const row = [
       catNome,
-      item.descricao   || '',
-      item.fornecedor  || '',
+      item.descricao  || '',
+      item.fornecedor || '',
       parseFloat(item.vlrUnitario) || 0,
       parseFloat(item.qtd)         || 0,
       vlrTotal,
-      item.nrPedido    || ''
+      item.nrPedido   || ''
     ];
 
     eventos.forEach(ev => {
@@ -981,7 +970,7 @@ function exportarGrupoExcel() {
     { s:{ r:3,c:3 }, e:{ r:3,c:6 } }
   ];
   eventos.forEach((_,i) => {
-    const sc = 7 + (i*4);
+    const sc = 7+(i*4);
     merges.push({ s:{ r:3,c:sc }, e:{ r:3,c:sc+3 } });
   });
   ws['!merges'] = merges;
@@ -1002,7 +991,7 @@ function exportarGrupoExcel() {
       const addr  = XLSX.utils.encode_cell({ r, c });
       if (!ws[addr]) ws[addr] = { v:'', t:'s' };
       const isNum = (c===3||c===4||c===5);
-      ws[addr].s = stl(
+      ws[addr].s  = stl(
         r%2===0 ? 'FFFFFF' : 'F9FAFB', FONT_NORMAL, BORDER_THIN,
         isNum ? BRL_FMT : null,
         isNum ? ALIGN_RIGHT : ALIGN_LEFT
@@ -1014,7 +1003,7 @@ function exportarGrupoExcel() {
         const addr  = XLSX.utils.encode_cell({ r, c });
         if (!ws[addr]) ws[addr] = { v:'', t:'s' };
         const isVal = (c===sc);
-        ws[addr].s = stl(
+        ws[addr].s  = stl(
           r%2===0 ? 'F0F4FF' : 'F8FAFF', FONT_NORMAL, BORDER_THIN,
           isVal ? BRL_FMT : null,
           c>=sc+2 ? ALIGN_CENTER : (isVal ? ALIGN_RIGHT : ALIGN_LEFT)
@@ -1142,10 +1131,10 @@ function exportarBalanceteExcel() {
 
       if (rowData[0] && (rowData[0].startsWith('1.')||rowData[0].startsWith('2.')||rowData[0].startsWith('3.')||rowData[0]==='RESUMO')) {
         let bg = 'F9FAFB', fc = '111827';
-        if (rowData[0].startsWith('1.'))   { bg='0F766E'; fc='FFFFFF'; }
+        if (rowData[0].startsWith('1.'))      { bg='0F766E'; fc='FFFFFF'; }
         else if (rowData[0].startsWith('2.')) { bg='DC2626'; fc='FFFFFF'; }
         else if (rowData[0].startsWith('3.')) { bg='F59E0B'; fc='111827'; }
-        else if (rowData[0]==='RESUMO')        { bg='0F766E'; fc='FFFFFF'; }
+        else if (rowData[0]==='RESUMO')       { bg='0F766E'; fc='FFFFFF'; }
         ws[addr].s = stl(bg,{bold:true,color:{rgb:fc},sz:11},BORDER_THIN,null,ALIGN_LEFT);
       } else if (c===2 && rowData[2]==='Subtotal') {
         ws[addr].s = stl('F3F4F6',FONT_BOLD,BORDER_THIN,null,ALIGN_LEFT);
@@ -1278,9 +1267,9 @@ function renderCategoriasCRs() {
 }
 
 function buildBodyCategoriaCR(cr) {
-  const extras     = DB.getCategoriasExtrasCR(cr.id);
+  const extras      = DB.getCategoriasExtrasCR(cr.id);
   const desativadas = DB.getCategoriasDesativadasCR(cr.id);
-  const padrao     = DB.getCategoriasPadrao().filter(c => c.ativo);
+  const padrao      = DB.getCategoriasPadrao().filter(c => c.ativo);
 
   return `
     <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
