@@ -477,18 +477,18 @@ function renderGrupoDetalhe() {
       <td><input type="number" data-f="vlrUnitario" data-i="${idx}" value="${item.vlrUnitario||''}"     placeholder="0,00" oninput="calcLinhaGrupo(${idx})"></td>
       <td><input type="number" data-f="qtd"         data-i="${idx}" value="${item.qtd||''}"             placeholder="0"    oninput="calcLinhaGrupo(${idx})"></td>
       <td><input type="number" data-f="vlrTotal"    data-i="${idx}" value="${item.vlrTotal||''}"        placeholder="0,00" oninput="updateResumo()"></td>
-      <td>
-        <div class="nr-pedido-cell">
-          ${pedNum
-            ? (pedLink
-                ? `<a href="${pedLink}" target="_blank" class="nr-pedido-link">${pedNum}</a>`
-                : `<span class="nr-pedido-texto">${pedNum}</span>`)
-            : `<span class="nr-pedido-vazio">—</span>`}
-          <button type="button" class="btn-nr-pedido-edit" onclick="abrirModalPedido(${idx})" title="Editar">✏</button>
-        </div>
-        <input type="hidden" data-f="nrPedido"     data-i="${idx}" value="${pedNum}">
-        <input type="hidden" data-f="nrPedidoLink" data-i="${idx}" value="${pedLink}">
-      </td>`;
+                <td style="cursor:pointer;" onclick="abrirModalPedido(${idx})">
+            <div class="nr-pedido-cell">
+              ${pedNum
+                ? (pedLink
+                    ? `<a href="${pedLink}" target="_blank" class="nr-pedido-link" onclick="event.stopPropagation()">${pedNum}</a>`
+                    : `<span class="nr-pedido-texto">${pedNum}</span>`)
+                : `<span style="color:#9CA3AF;font-size:12px;">— editar</span>`}
+            </div>
+            <input type="hidden" data-f="nrPedido"     data-i="${idx}" value="${pedNum}">
+            <input type="hidden" data-f="nrPedidoLink" data-i="${idx}" value="${pedLink}">
+          </td>`;
+
 
     eventos.forEach(ev => {
       const d      = item.eventos?.[ev.id] || {};
@@ -500,18 +500,18 @@ function renderGrupoDetalhe() {
           <input type="number" data-ev="${ev.id}" data-i="${idx}" data-ef="valor"
             value="${d.valor||''}" placeholder="0,00" oninput="updateResumo()">
         </td>
-        <td class="td-ev">
-          <div class="nr-pedido-cell">
-            ${nfNum
-              ? (nfLink
-                  ? `<a href="${nfLink}" target="_blank" class="nr-pedido-link">${nfNum}</a>`
-                  : `<span class="nr-pedido-texto">${nfNum}</span>`)
-              : `<span class="nr-pedido-vazio">NF</span>`}
-            <button type="button" class="btn-nr-pedido-edit" onclick="abrirModalNF(${idx},'${ev.id}')" title="Editar NF">+</button>
-          </div>
-          <input type="hidden" data-ev="${ev.id}" data-i="${idx}" data-ef="nrNF" value="${nfNum}">
-          <input type="hidden" id="nf-link-${idx}-${ev.id}" value="${nfLink}">
-        </td>
+                    <td class="td-ev" style="cursor:pointer;" onclick="abrirModalNF(${idx},'${ev.id}')">
+              <div class="nr-pedido-cell">
+                ${nfNum
+                  ? (nfLink
+                      ? `<a href="${nfLink}" target="_blank" class="nr-pedido-link" onclick="event.stopPropagation()">${nfNum}</a>`
+                      : `<span class="nr-pedido-texto">${nfNum}</span>`)
+                  : `<span style="color:#9CA3AF;font-size:12px;">— editar</span>`}
+              </div>
+              <input type="hidden" data-ev="${ev.id}" data-i="${idx}" data-ef="nrNF" value="${nfNum}">
+              <input type="hidden" id="nf-link-${idx}-${ev.id}" value="${nfLink}">
+            </td>
+
         <td class="td-ev check-cell">
           <input type="checkbox" data-ev="${ev.id}" data-i="${idx}" data-ef="as" ${d.as?'checked':''}>
         </td>
