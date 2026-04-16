@@ -1149,4 +1149,4 @@ function buildBodyCategoriaCR(cr) {
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => { renderCRs(); });
+// (inicialização feita pelo auth.js via iniciarApp)

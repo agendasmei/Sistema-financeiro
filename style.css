@@ -248,3 +248,293 @@ tbody td{position:relative}
 ══════════════════════════════════════════ */
 .btn-salvar-topo{background:#0F766E;color:#fff;font-weight:600;padding:8px 20px}
 .btn-salvar-topo:hover{background:#0D6962}
+/* ══════════════════════════════════════════
+   TELA DE LOGIN
+══════════════════════════════════════════ */
+.login-wrapper {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.login-box {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-logo {
+  background: #F0FDF4;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 4px;
+}
+
+.login-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.login-subtitulo {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0 0 16px;
+}
+
+.lista-usuarios-login {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.login-user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  background: #fff;
+}
+
+.login-user-card:hover {
+  border-color: #0F766E;
+  background: #F0FDF4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15,118,110,0.1);
+}
+
+.login-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0F766E, #14B8A6);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.login-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.login-user-nome {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.login-user-sub {
+  font-size: 11px;
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ══════════════════════════════════════════
+   BADGES DE TIPO (ADM / Usuário)
+══════════════════════════════════════════ */
+.login-user-tipo {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.tipo-adm {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.tipo-usuario {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+/* ══════════════════════════════════════════
+   HEADER — USUÁRIO LOGADO
+══════════════════════════════════════════ */
+.header-usuario {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 30px;
+  background: #F0FDF4;
+  border: 1px solid #D1FAE5;
+}
+
+.header-usuario-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0F766E, #14B8A6);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-usuario-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1;
+}
+
+.header-usuario-nome {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.header-usuario-tipo {
+  font-size: 10px;
+  color: #6B7280;
+}
+
+/* ══════════════════════════════════════════
+   BOTÃO LOGOUT
+══════════════════════════════════════════ */
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1.5px solid #FCA5A5;
+  background: #FFF5F5;
+  color: #DC2626;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-logout:hover {
+  background: #FEE2E2;
+  border-color: #DC2626;
+}
+
+/* ══════════════════════════════════════════
+   BOTÃO CONFIG (header)
+══════════════════════════════════════════ */
+.btn-config {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid #E5E7EB;
+  background: #fff;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-config:hover {
+  background: #F3F4F6;
+  color: #111827;
+  border-color: #9CA3AF;
+}
+
+/* ══════════════════════════════════════════
+   CONFIGURAÇÕES — 3 colunas + botão usuário
+══════════════════════════════════════════ */
+.btn-add-cat-small {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #0F766E;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s;
+  white-space: nowrap;
+}
+
+.btn-add-cat-small:hover {
+  background: #0D6560;
+}
+
+/* ══════════════════════════════════════════
+   BOTÃO ICON DANGER (remover usuário)
+══════════════════════════════════════════ */
+.btn-icon-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1.5px solid #FCA5A5;
+  background: #FFF5F5;
+  color: #DC2626;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-icon-danger:hover {
+  background: #FEE2E2;
+}
+
+.btn-icon-danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════
+   ADM-ONLY — oculto para usuários comuns
+   (controlado via JS no entrarNoSistema)
+══════════════════════════════════════════ */
+.adm-only-hidden {
+  display: none !important;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVO — login em telas pequenas
+══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .login-box {
+    padding: 28px 20px;
+  }
+
+  .header-usuario-nome,
+  .header-usuario-tipo {
+    display: none;
+  }
+
+  .btn-logout span {
+    display: none;
+  }
+}
