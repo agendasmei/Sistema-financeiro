@@ -22,8 +22,18 @@
         Sistema Financeiro MEI
       </span>
       <div class="header-nav">
-        <button class="btn-voltar" id="btn-voltar" onclick="voltarTela()" style="display:none">← Voltar</button>
-        <button class="btn-config" onclick="abrirConfiguracoes()" title="Configurações">⚙</button>
+        <button class="btn-voltar" id="btn-voltar" onclick="voltarTela()" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Voltar
+        </button>
+        <button class="btn-config" onclick="abrirConfiguracoes()" title="Configuracoes">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </button>
       </div>
     </div>
   </header>
@@ -44,7 +54,13 @@
       <div class="tela-header">
         <h2 id="titulo-grupos">Grupos</h2>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn-secondary" onclick="verBalancete()">📊 Balancete</button>
+          <button class="btn-secondary" onclick="verBalancete()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            Balancete
+          </button>
           <button onclick="abrirModal('modal-grupo')">+ Novo Grupo</button>
         </div>
       </div>
@@ -56,15 +72,27 @@
       <div class="tela-header">
         <h2 id="titulo-grupo-detalhe">Grupo</h2>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn-secondary" onclick="exportarGrupoExcel()">📥 Exportar Excel</button>
+          <button class="btn-secondary" onclick="exportarGrupoExcel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Exportar Excel
+          </button>
           <button class="btn-secondary" onclick="abrirModal('modal-evento')">+ Novo Evento</button>
           <button onclick="addItemGrupo()">+ Adicionar Item</button>
-          <button class="btn-salvar-topo" onclick="salvarGrupoItens()">💾 Salvar</button>
+          <button class="btn-salvar-topo" onclick="salvarGrupoItens()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Salvar
+          </button>
         </div>
       </div>
       <div class="resumo-reuniao">
         <div class="resumo-reuniao-item">
-          <span class="resumo-label">Orçamento</span>
+          <span class="resumo-label">Orcamento</span>
           <span class="resumo-valor" id="resumo-orcamento">R$ 0,00</span>
         </div>
         <div class="resumo-reuniao-item">
@@ -90,27 +118,43 @@
       <div class="tela-header">
         <h2 id="titulo-balancete">Balancete</h2>
         <div style="display:flex;gap:10px;">
-          <button class="btn-secondary" onclick="exportarBalanceteExcel()">📥 Exportar Excel</button>
-          <button class="btn-secondary" onclick="irParaGrupos()">← Voltar</button>
+          <button class="btn-secondary" onclick="exportarBalanceteExcel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Exportar Excel
+          </button>
+          <button class="btn-secondary" onclick="irParaGrupos()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Voltar
+          </button>
         </div>
       </div>
       <div id="conteudo-balancete"></div>
     </div>
 
-    <!-- TELA: CONFIGURAÇÕES -->
+    <!-- TELA: CONFIGURACOES -->
     <div id="tela-config" class="tela">
       <div class="tela-header">
-        <h2>Configurações</h2>
-        <button class="btn-secondary" onclick="voltarDeConfig()">← Voltar</button>
+        <h2>Configuracoes</h2>
+        <button class="btn-secondary" onclick="voltarDeConfig()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Voltar
+        </button>
       </div>
       <div class="config-wrapper">
         <div class="config-section">
           <div class="config-section-header">
-            <h3>Categorias Padrão</h3>
-            <span class="config-hint">Aplicadas a todos os CRs por padrão</span>
+            <h3>Categorias Padrao</h3>
+            <span class="config-hint">Aplicadas a todos os CRs por padrao</span>
           </div>
           <div id="lista-cat-padrao" class="lista-categorias"></div>
-          <button class="btn-add-cat" onclick="abrirModal('modal-categoria-padrao')">+ Nova Categoria Padrão</button>
+          <button class="btn-add-cat" onclick="abrirModal('modal-categoria-padrao')">+ Nova Categoria Padrao</button>
         </div>
         <div class="config-section">
           <div class="config-section-header">
@@ -124,9 +168,7 @@
 
   </main>
 
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- MODAIS                                      -->
-  <!-- ═══════════════════════════════════════════ -->
+  <!-- MODAIS -->
 
   <!-- Novo CR -->
   <div id="modal-cr" class="modal">
@@ -134,7 +176,7 @@
       <h3>Novo CR</h3>
       <label class="input-label">Nome do CR</label>
       <input id="input-cr" type="text" placeholder="Ex: CR Evento 2025">
-      <label class="input-label">Orçamento inicial (R$)</label>
+      <label class="input-label">Orcamento inicial (R$)</label>
       <input id="input-cr-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
       <div class="modal-actions">
         <button onclick="salvarCR()">Salvar</button>
@@ -143,7 +185,7 @@
     </div>
   </div>
 
-  <!-- Editar Nome (genérico) -->
+  <!-- Editar Nome -->
   <div id="modal-editar-nome" class="modal">
     <div class="modal-box">
       <h3 id="modal-editar-nome-titulo">Editar Nome</h3>
@@ -155,10 +197,10 @@
     </div>
   </div>
 
-  <!-- Editar Orçamento -->
+  <!-- Editar Orcamento -->
   <div id="modal-orcamento" class="modal">
     <div class="modal-box">
-      <h3>Editar Orçamento</h3>
+      <h3>Editar Orcamento</h3>
       <label class="input-label">Valor (R$)</label>
       <input id="input-orcamento" type="number" placeholder="0,00" min="0" step="0.01">
       <div class="modal-actions">
@@ -173,7 +215,7 @@
     <div class="modal-box">
       <h3>Novo Grupo</h3>
       <label class="input-label">Nome do Grupo</label>
-      <input id="input-grupo" type="text" placeholder="Ex: Comitê Organizador">
+      <input id="input-grupo" type="text" placeholder="Ex: Comite Organizador">
       <div class="modal-actions">
         <button onclick="salvarGrupo()">Salvar</button>
         <button class="btn-cancel" onclick="fecharModal('modal-grupo')">Cancelar</button>
@@ -194,10 +236,10 @@
     </div>
   </div>
 
-  <!-- Nova Categoria Padrão -->
+  <!-- Nova Categoria Padrao -->
   <div id="modal-categoria-padrao" class="modal">
     <div class="modal-box">
-      <h3>Nova Categoria Padrão</h3>
+      <h3>Nova Categoria Padrao</h3>
       <label class="input-label">Nome da Categoria</label>
       <input id="input-cat-padrao" type="text" placeholder="Ex: Transporte">
       <div class="modal-actions">
@@ -212,7 +254,7 @@
     <div class="modal-box">
       <h3 id="titulo-modal-cat-cr">Nova Categoria</h3>
       <label class="input-label">Nome da Categoria</label>
-      <input id="input-cat-cr" type="text" placeholder="Ex: Decoração">
+      <input id="input-cat-cr" type="text" placeholder="Ex: Decoracao">
       <div class="modal-actions">
         <button onclick="salvarCategoriaCR()">Salvar</button>
         <button class="btn-cancel" onclick="fecharModal('modal-categoria-cr')">Cancelar</button>
@@ -233,14 +275,16 @@
     </div>
   </div>
 
-  <!-- MODAL NÚMERO + LINK (Pedido e NF) -->
+  <!-- Modal Numero + Link -->
   <div id="modal-num-link" class="modal">
     <div class="modal-box modal-box-sm">
       <h3 id="modal-num-link-titulo">Editar</h3>
-      <label class="input-label">Número</label>
+      <label class="input-label">Numero</label>
       <input id="modal-num-link-num" type="text" placeholder="Ex: 12345"
         onkeydown="if(event.key==='Enter') salvarModalNumLink()">
-      <label class="input-label">Link <span style="color:#9CA3AF;font-weight:400;">(opcional)</span></label>
+      <label class="input-label">
+        Link <span style="color:#9CA3AF;font-weight:400;">(opcional)</span>
+      </label>
       <input id="modal-num-link-url" type="text" placeholder="https://..."
         onkeydown="if(event.key==='Enter') salvarModalNumLink()">
       <div class="modal-actions">
