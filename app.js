@@ -92,6 +92,8 @@ function voltarTela() {
     irParaGrupos();
   } else if (telaAnterior === 'tela-grupos') {
     irParaCRs();
+  } else if (telaAnterior === 'tela-balancete') {
+    irParaGrupos();
   } else {
     irParaCRs();
   }
@@ -680,7 +682,7 @@ function pedirConfirmacaoRemover(btn) {
 // BALANCETE CONTÁBIL (#6)
 // ═══════════════════════════════════════════
 function verBalancete() {
-  telaAnterior = 'tela-grupos';
+  telaAnterior = 'tela-grupos'; // mantém para o btn-voltar funcionar
   mostrarTela('tela-balancete');
   renderBalancete();
 }

@@ -210,3 +210,41 @@ tfoot td{padding:8px 10px;font-size:13px;font-weight:600;background:#F9FAFB;bord
 .nr-pedido-vazio{color:#D1D5DB}
 .btn-nr-pedido-edit{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;opacity:.5;transition:all .2s}
 .btn-nr-pedido-edit:hover{opacity:1;background:#F0FDFA}
+/* ══════════════════════════════════════════
+   POPOVER
+══════════════════════════════════════════ */
+.popover-panel{
+  display:none;position:absolute;z-index:500;background:#fff;
+  border:1px solid #E5E7EB;border-radius:10px;padding:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:220px;
+  flex-direction:column;gap:6px;
+}
+.popover-panel.open{display:flex}
+.popover-panel label{font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase}
+.popover-panel input{border:1px solid #D1D5DB;border-radius:6px;padding:6px 8px;font-size:12px;width:100%}
+.popover-panel input:focus{outline:none;border-color:#0F766E}
+.popover-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
+.popover-actions button{padding:5px 12px;font-size:12px}
+.popover-trigger{display:flex;align-items:center;gap:4px;cursor:pointer}
+.popover-link-icon{font-size:14px;color:#0F766E;cursor:pointer;padding:2px 4px;border-radius:4px}
+.popover-link-icon:hover{background:#F0FDFA}
+
+/* Células com posição relativa p/ popover */
+tbody td{position:relative}
+
+/* ══════════════════════════════════════════
+   NR PEDIDO - CÉLULA
+══════════════════════════════════════════ */
+.nr-pedido-cell{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.nr-pedido-link{color:#0F766E;font-weight:600;text-decoration:none;cursor:pointer;transition:all .2s}
+.nr-pedido-link:hover{color:#0D9488;text-decoration:underline}
+.nr-pedido-texto{color:#374151;font-weight:500}
+.nr-pedido-vazio{color:#D1D5DB}
+.btn-nr-pedido-edit{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;opacity:.5;transition:all .2s}
+.btn-nr-pedido-edit:hover{opacity:1;background:#F0FDFA}
+
+/* ══════════════════════════════════════════
+   BOTÃO SALVAR NO TOPO
+══════════════════════════════════════════ */
+.btn-salvar-topo{background:#0F766E;color:#fff;font-weight:600;padding:8px 20px}
+.btn-salvar-topo:hover{background:#0D6962}
